@@ -30,7 +30,7 @@ Usage: `:Indexer tag [attach|update]`
     " Project root markers, used to identify project root directory.
     let g:indexer_root_markers = ['.git']
 
-    " Enabled user modules
+    " Enabled user modules.
     let g:indexer_user_modules = ['log', 'job', 'tag']
 
 ## Options (module)
@@ -46,6 +46,7 @@ Usage: `:Indexer tag [attach|update]`
     "
     " This module can also read the configuration of the current project.
     " For example you can have a JSON formatted file in the project directory:
+    "
     " > indexer.json:
     " {
     "    "tags_savedir": "~/.vim_indexer_tags/",
