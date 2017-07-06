@@ -4,6 +4,23 @@ A Indexer plugin that provides painless transparent tags generation with project
 
 Usage: `:Indexer [module] [action] [params ...]`
 
+## Modules
+
+### log
+Module that provides logging, usually used for debugging modules themselves.
+
+Usage: `:Indexer log`
+
+### job
+Module that provides starting and stopping jobs (Vim8 with +job feature required).
+
+Usage: `:Indexer job [status]`
+
+### tag
+Module that provides painless transparent tags generation (job module required).
+
+Usage: `:Indexer tag [attach|update]`
+
 ## Options
 
     " JSON formatted configuration file which located in the project directory,
