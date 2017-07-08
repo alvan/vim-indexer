@@ -111,6 +111,11 @@ func! indexer#{s:name}#_attach(cxt)
 endf
 
 func! indexer#{s:name}#_update(cxt)
+    if a:cxt.etc.ctag_command == ''
+        call indexer#add_log('Tags command not found!')
+        return
+    en
+
     if !isdirectory(a:cxt.etc.tags_savedir)
         if exists("*mkdir")
             call mkdir(a:cxt.etc.tags_savedir, 'p')
