@@ -88,7 +88,7 @@ func! indexer#process(cxt)
         en
     en
 
-    echon 'Failed to call Indexer module "' a:cxt.mod '"'
+    call indexer#add_log('Miss module: ' . a:cxt.mod)
 endf
 
 func! indexer#execute(cxt)
