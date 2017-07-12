@@ -14,5 +14,5 @@ func! s:Indexer(...)
 endf
 
 " Use :Indexer to call functions manually.
-com! -nargs=* -complete=shellcmd Indexer call s:Indexer(<f-args>)
+com! -nargs=* -complete=custom,indexer#express Indexer call s:Indexer(<f-args>)
 call indexer#startup()

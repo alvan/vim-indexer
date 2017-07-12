@@ -12,6 +12,10 @@ let s:name = 'job'
 let s:acts = ['', 'status']
 let s:jobs = {}
 
+func! indexer#{s:name}#actions()
+    return s:acts
+endf
+
 func! indexer#{s:name}#initial()
     call indexer#add_log('Init module: ' . s:name)
 endf

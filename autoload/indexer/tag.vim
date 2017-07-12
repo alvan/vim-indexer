@@ -11,6 +11,10 @@ if exists('s:name') | fini | en
 let s:name = 'tag'
 let s:acts = ['', 'attach', 'update']
 
+func! indexer#{s:name}#actions()
+    return s:acts
+endf
+
 func! indexer#{s:name}#initial()
     call indexer#add_log('Init module: ' . s:name)
 

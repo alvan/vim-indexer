@@ -42,6 +42,43 @@ func! indexer#default(cxt)
     en
 endf
 
+func! indexer#express(...)
+    let l:cmd = get(a:000, 1, '')
+    let l:pos = get(a:000, 2)
+    let l:pre = substitute(
+                \ substitute(strpart(l:cmd, stridx(l:cmd, ' '), l:pos), '^\s\+', '', '')
+                \ , '\s\+', ' ', 'g')
+    let l:len = strlen(l:pre)
+
+    let l:map = {}
+    for l:mod in g:indexer_user_modules
+        let l:map[l:mod] = l:mod
+        if exists('*indexer#' . l:mod . '#actions')
+            for l:act in indexer#{l:mod}#actions()
+                if l:act != ''
+                    let l:map[l:mod . ' ' . l:act] = l:act
+                    if exists('*indexer#' . l:mod . '#options')
+                        for l:opt in indexer#{l:mod}#options(l:act)
+                            if l:opt != ''
+                                let l:map[l:mod . ' ' . l:act . ' ' . l:opt] = l:opt
+                            en
+                        endfor
+                    en
+                en
+            endfor
+        en
+    endfor
+
+    let l:res = []
+    for [l:key, l:val] in items(l:map)
+        if strpart(l:key, 0, l:len) == l:pre && stridx(strpart(l:key, l:len), ' ') < 0
+            call extend(l:res, [l:val])
+        en
+    endfor
+
+    return join(l:res, "\n")
+endf
+
 func! indexer#process(cxt)
     if a:cxt.mod == ''
         call indexer#default(a:cxt)

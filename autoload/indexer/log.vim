@@ -12,6 +12,10 @@ let s:name = 'log'
 let s:acts = ['']
 let s:logs = []
 
+func! indexer#{s:name}#actions()
+    return s:acts
+endf
+
 func! indexer#{s:name}#initial()
     call indexer#declare('g:indexer_logs_maxsize', 100)
     call indexer#add_log('Init module: ' . s:name)
