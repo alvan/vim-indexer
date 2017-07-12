@@ -15,6 +15,7 @@ func! indexer#{s:name}#initial()
     call indexer#add_log('Init module: ' . s:name)
 
     call indexer#declare('g:indexer_tags_savedir', '~/.vim_indexer_tags/')
+    call indexer#declare('g:indexer_ctag_refresh', 0)
     call indexer#declare('g:indexer_ctag_watches', ['*.c', '*.h', '*.c++', '*.php', '*.py'])
     call indexer#declare('g:indexer_ctag_command', indexer#{s:name}#command())
     call indexer#declare('g:indexer_ctag_options', '-R --sort=yes --c++-kinds=+p+l --fields=+iaS --extra=+q --languages=vim,c,c++,php,python')
@@ -41,6 +42,7 @@ func! indexer#{s:name}#context(cxt)
     let a:cxt.etc.tags_uniform = indexer#{s:name}#uniform(a:cxt.prj.dir)
 
     let a:cxt.etc.tags_savedir = fnamemodify(get(a:cxt.prj.etc, 'tags_savedir', g:indexer_tags_savedir), ':p')
+    let a:cxt.etc.ctag_refresh = get(a:cxt.prj.etc, 'ctag_refresh', g:indexer_ctag_refresh)
     let a:cxt.etc.ctag_watches = get(a:cxt.prj.etc, 'ctag_watches', g:indexer_ctag_watches)
     let a:cxt.etc.ctag_command = get(a:cxt.prj.etc, 'ctag_command', g:indexer_ctag_command)
     let a:cxt.etc.ctag_options = get(a:cxt.prj.etc, 'ctag_options', g:indexer_ctag_options)
@@ -49,10 +51,11 @@ func! indexer#{s:name}#context(cxt)
 endf
 
 func! indexer#{s:name}#refresh(fil)
-    let l:cxt = indexer#{s:name}#context(indexer#context(s:name, 'update', '-1'))
+    let l:cxt = indexer#{s:name}#context(indexer#context(s:name, 'update', '0'))
     if !empty(l:cxt) && !empty(l:cxt.etc.ctag_watches)
         for l:pth in l:cxt.etc.ctag_watches
             if a:fil =~ glob2regpat(l:pth)
+                let l:cxt.etc.args[2] = string(l:cxt.etc.ctag_refresh - 1)
                 call indexer#execute(l:cxt)
                 return
             en
@@ -93,8 +96,6 @@ func! indexer#{s:name}#did_tag(cxt)
             call rename(a:cxt.tmp, a:cxt.out)
         en
     en
-
-    call indexer#{s:name}#_attach(a:cxt)
 endf
 
 "
@@ -133,7 +134,6 @@ func! indexer#{s:name}#_update(cxt)
     let l:job.sta = str2nr(get(a:cxt.etc.args, 2, '0'))
 
     call indexer#{s:name}#_attach(a:cxt)
-
     call indexer#add_log('Make tags: ' . a:cxt.out)
 
     if has('job') && indexer#has_mod('job')

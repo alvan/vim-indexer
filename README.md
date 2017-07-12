@@ -50,6 +50,7 @@ Usage: `:Indexer tag [attach|update]`
     " > indexer.json:
     " {
     "    "tags_savedir": "~/.vim_indexer_tags/",
+    "    "ctag_refresh": 1,
     "    "ctag_watches": ["*.php"],
     "    "ctag_command": "ctags",
     "    "ctag_options": "-R --sort=yes --languages=php"
@@ -58,6 +59,7 @@ Usage: `:Indexer tag [attach|update]`
     " And/Or settings in global:
     "
     let g:indexer_tags_savedir = fnamemodify('~/.vim_indexer_tags/', ':p')
+    let g:indexer_ctag_refresh = 0
     let g:indexer_ctag_watches = ['*.c', '*.h', '*.c++', '*.php', '*.py']
     let g:indexer_ctag_command = 'ctags'
     let g:indexer_ctag_options = '-R --sort=yes --c++-kinds=+p+l --fields=+iaS --extra=+q --languages=vim,c,c++,php,python'
