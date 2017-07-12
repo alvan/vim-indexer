@@ -52,7 +52,7 @@ func! indexer#{s:name}#_(cxt)
             let l:log = s:logs[l:idx]
 
             echon "\n"
-            echon printf('%0' . l:len . 'd', l:idx) '. '
+            echon printf('%0' . l:len . 'd', l:idx + 1) '. '
             echon '[' . (l:ftm ? strftime('%c', get(l:log, 0)) : l:idx) . ']'
             for l:val in get(l:log, 1, [])
                 echon ' ' l:val
