@@ -28,21 +28,29 @@ func! indexer#{s:name}#context(cxt)
     return a:cxt
 endf
 
+func! indexer#{s:name}#has_job(key)
+    return has_key(s:jobs, a:key)
+endf
+
 func! indexer#{s:name}#run_job() dict
     if !has('job')
         return
     en
 
     " Job sta:
-    "  -1 => skip saving job if there's an old job running already
-    "   0 => stop the old job before saving new job
-    "   1 => save job
+    "  -1 => skip saving job if there's an old job exists already
+    "   0 => skip saving job if there's an old job running already
+    "   1 => stop the old job before saving new job
     "
     if self.key != ''
-        let l:job = get(s:jobs, self.key)
+        if has_key(s:jobs, self.key)
+            if self.sta < 0
+                call indexer#add_log('Skip job: ' . self.key)
+                return
+            en
 
-        if !empty(l:job) && job_status(l:job) == 'run'
-            if !empty(self.sta)
+            let l:job = get(s:jobs, self.key)
+            if job_status(l:job) == 'run'
                 if self.sta > 0
                     call indexer#add_log('Stop job: ' . self.key)
                     call job_stop(l:job)
@@ -61,11 +69,6 @@ endf
 func! indexer#{s:name}#end_job(job, err) dict
     if !a:err
         call indexer#add_log('Done job: ' . self.key, [a:job, a:err])
-
-        if has_key(s:jobs, self.key)
-            unl! s:jobs[self.key]
-        en
-
         if has_key(self, 'ecb')
             call {self.ecb}(self.cxt)
         en
