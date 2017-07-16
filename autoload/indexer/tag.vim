@@ -9,58 +9,55 @@
 if exists('s:name') | fini | en
 
 let s:name = 'tag'
-let s:acts = ['', 'attach', 'update']
-
-func! indexer#{s:name}#actions()
-    return s:acts
-endf
 
 func! indexer#{s:name}#initial()
     call indexer#add_log('Init module: ' . s:name)
 
+    call indexer#declare('g:indexer_tags_watches', ['*.c', '*.h', '*.c++', '*.php', '*.py'])
+    call indexer#declare('g:indexer_tags_command', indexer#{s:name}#command())
+    call indexer#declare('g:indexer_tags_options', '-R --sort=yes --c++-kinds=+p+l --fields=+iaS --extra=+q --languages=vim,c,c++,php,python')
     call indexer#declare('g:indexer_tags_savedir', '~/.vim_indexer_tags/')
-    call indexer#declare('g:indexer_ctag_refresh', 0)
-    call indexer#declare('g:indexer_ctag_watches', ['*.c', '*.h', '*.c++', '*.php', '*.py'])
-    call indexer#declare('g:indexer_ctag_command', indexer#{s:name}#command())
-    call indexer#declare('g:indexer_ctag_options', '-R --sort=yes --c++-kinds=+p+l --fields=+iaS --extra=+q --languages=vim,c,c++,php,python')
 endf
 
 func! indexer#{s:name}#startup()
+    exec 'au BufEnter * call indexer#' . s:name . '#trigger(["attach"], expand("<afile>:p"))'
     if has('job')
-        exec 'au BufReadPost,BufWritePost * call indexer#' . s:name . '#refresh(expand("<afile>:p"))'
+        exec 'au BufReadPost * call indexer#' . s:name . '#trigger(["update", "-1"], expand("<afile>:p"))'
     en
 endf
 
 func! indexer#{s:name}#context(cxt)
-    if index(s:acts, a:cxt.act) < 0
-        call indexer#add_log(printf('Miss Action "%s" in module %s', a:cxt.act, s:name))
+    if !has_key(a:cxt, 'fil')
+        let a:cxt.fil = expand('%:p')
+    en
+
+    let a:cxt.prj = indexer#project(a:cxt.fil)
+    if empty(a:cxt.prj)
         return
     en
 
-    let l:prj = indexer#project(expand('%:p'))
-    if empty(l:prj)
-        return
+    if !has_key(a:cxt, 'etc')
+        let a:cxt.etc = {}
     en
 
-    let a:cxt.prj = l:prj
-    let a:cxt.etc.tags_uniform = indexer#{s:name}#uniform(a:cxt.prj.dir)
-
+    let a:cxt.etc.tags_watches = get(a:cxt.prj.etc, 'tags_watches', g:indexer_tags_watches)
+    let a:cxt.etc.tags_command = get(a:cxt.prj.etc, 'tags_command', g:indexer_tags_command)
+    let a:cxt.etc.tags_options = get(a:cxt.prj.etc, 'tags_options', g:indexer_tags_options)
     let a:cxt.etc.tags_savedir = fnamemodify(get(a:cxt.prj.etc, 'tags_savedir', g:indexer_tags_savedir), ':p')
-    let a:cxt.etc.ctag_refresh = get(a:cxt.prj.etc, 'ctag_refresh', g:indexer_ctag_refresh)
-    let a:cxt.etc.ctag_watches = get(a:cxt.prj.etc, 'ctag_watches', g:indexer_ctag_watches)
-    let a:cxt.etc.ctag_command = get(a:cxt.prj.etc, 'ctag_command', g:indexer_ctag_command)
-    let a:cxt.etc.ctag_options = get(a:cxt.prj.etc, 'ctag_options', g:indexer_ctag_options)
 
     return a:cxt
 endf
 
-func! indexer#{s:name}#refresh(fil)
-    let l:cxt = indexer#{s:name}#context(indexer#context(s:name, 'update', '0'))
-    if !empty(l:cxt) && !empty(l:cxt.etc.ctag_watches)
-        for l:pth in l:cxt.etc.ctag_watches
-            if a:fil =~ glob2regpat(l:pth)
-                let l:cxt.etc.args[2] = string(l:cxt.etc.ctag_refresh - 1)
-                call indexer#execute(l:cxt)
+func! indexer#{s:name}#prepare(req)
+    return indexer#{s:name}#context({})
+endf
+
+func! indexer#{s:name}#trigger(fun, fil)
+    let l:cxt = indexer#{s:name}#context({'fil': a:fil})
+    if !empty(l:cxt) && !empty(l:cxt.etc.tags_watches) && !empty(a:fun)
+        for l:pat in l:cxt.etc.tags_watches
+            if a:fil =~ glob2regpat(l:pat)
+                call indexer#execute(call('indexer#request', [s:name] + a:fun), l:cxt)
                 return
             en
         endfor
@@ -105,41 +102,42 @@ endf
 "
 " Actions
 "
-func! indexer#{s:name}#_(cxt)
+func! indexer#{s:name}#_(req) dict
     echon &tags
 endf
 
-func! indexer#{s:name}#_attach(cxt)
-    let l:out = get(a:cxt, 'out', a:cxt.etc.tags_savedir . a:cxt.etc.tags_uniform)
-    call indexer#add_log('Link tags: ' . l:out)
-    exec "set tags+=" . substitute(l:out, ' ', '\\\\\\ ', 'g')
+func! indexer#{s:name}#_attach(req) dict
+    let l:out = self.etc.tags_savedir . indexer#{s:name}#uniform(self.prj.dir)
+    if index(tagfiles(), l:out) < 0
+        call indexer#add_log('Link tags: ' . l:out)
+        exec "setl tags+=" . substitute(l:out, ' ', '\\\\\\ ', 'g')
+    en
 endf
 
-func! indexer#{s:name}#_update(cxt)
-    if a:cxt.etc.ctag_command == ''
+func! indexer#{s:name}#_update(req) dict
+    if self.etc.tags_command == ''
         call indexer#add_log('Tags command not found!')
         return
     en
 
-    if !isdirectory(a:cxt.etc.tags_savedir)
+    if !isdirectory(self.etc.tags_savedir)
         if exists("*mkdir")
-            call mkdir(a:cxt.etc.tags_savedir, 'p')
+            call mkdir(self.etc.tags_savedir, 'p')
         en
     en
 
-    let a:cxt.tmp = tempname()
-    let a:cxt.out = a:cxt.etc.tags_savedir . a:cxt.etc.tags_uniform
-    let a:cxt.cmd = printf('%s %s -f %s %s', a:cxt.etc.ctag_command, a:cxt.etc.ctag_options, a:cxt.tmp, a:cxt.prj.dir)
+    let self.tmp = tempname()
+    let self.out = self.etc.tags_savedir . indexer#{s:name}#uniform(self.prj.dir)
+    let self.cmd = printf('%s %s -f %s %s', self.etc.tags_command, self.etc.tags_options, self.tmp, self.prj.dir)
 
     let l:job = {}
-    let l:job.cxt = a:cxt
-    let l:job.key = indexer#{s:name}#job_key(a:cxt.act, a:cxt.etc.tags_uniform)
+    let l:job.cxt = self
+    let l:job.cmd = self.cmd
+    let l:job.key = indexer#{s:name}#job_key(a:req.act, self.out)
     let l:job.ecb = 'indexer#' . s:name . '#did_tag'
-    let l:job.sta = str2nr(get(a:cxt.etc.args, 2, '0'))
+    let l:job.sta = str2nr(get(a:req.etc.args, 2, '0'))
 
-    call indexer#{s:name}#_attach(a:cxt)
-    call indexer#add_log('Make tags: ' . a:cxt.out)
-
+    call indexer#add_log('Make tags: ' . self.out)
     if has('job') && indexer#has_mod('job')
         call function('indexer#job#run_job', l:job)()
     el

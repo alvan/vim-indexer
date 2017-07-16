@@ -9,12 +9,7 @@
 if exists('s:name') | fini | en
 
 let s:name = 'log'
-let s:acts = ['']
 let s:logs = []
-
-func! indexer#{s:name}#actions()
-    return s:acts
-endf
 
 func! indexer#{s:name}#initial()
     call indexer#declare('g:indexer_logs_maxsize', 100)
@@ -24,17 +19,12 @@ endf
 func! indexer#{s:name}#startup()
 endf
 
-func! indexer#{s:name}#context(cxt)
-    if index(s:acts, a:cxt.act) < 0
-        call indexer#add_log(printf('Miss Action "%s" in module %s', a:cxt.act, s:name))
-        return
-    en
-
-    return a:cxt
+func! indexer#{s:name}#prepare(req)
+    return {}
 endf
 
 func! indexer#{s:name}#add_log(...)
-    call extend(s:logs, [[localtime(), a:000]])
+    call add(s:logs, [localtime(), a:000])
     if exists('g:indexer_logs_maxsize') && len(s:logs) > g:indexer_logs_maxsize
         call remove(s:logs, 0)
     en
@@ -43,7 +33,7 @@ endf
 "
 " Actions
 "
-func! indexer#{s:name}#_(cxt)
+func! indexer#{s:name}#_(req) dict
     let l:sum = len(s:logs)
     if l:sum > 0
         let l:ftm = exists("*strftime")

@@ -9,12 +9,7 @@
 if exists('s:name') | fini | en
 
 let s:name = 'job'
-let s:acts = ['', 'status']
 let s:jobs = {}
-
-func! indexer#{s:name}#actions()
-    return s:acts
-endf
 
 func! indexer#{s:name}#initial()
     call indexer#add_log('Init module: ' . s:name)
@@ -23,17 +18,13 @@ endf
 func! indexer#{s:name}#startup()
 endf
 
-func! indexer#{s:name}#context(cxt)
-    if index(s:acts, a:cxt.act) < 0
-        call indexer#add_log(printf('Miss Action "%s" in module %s', a:cxt.act, s:name))
-        return
-    en
-
-    return a:cxt
+func! indexer#{s:name}#prepare(req)
+    return {}
 endf
 
 func! indexer#{s:name}#run_job() dict
     if !has('job')
+        call indexer#add_log('Miss +job feature')
         return
     en
 
@@ -62,7 +53,7 @@ func! indexer#{s:name}#run_job() dict
 
     call indexer#add_log('Save job: ' . self.key)
 
-    let l:job = job_start(self.cxt.cmd, {"exit_cb": function('indexer#' . s:name . '#end_job', self)})
+    let l:job = job_start(self.cmd, {"exit_cb": function('indexer#' . s:name . '#end_job', self)})
     if self.key != ''
         let s:jobs[self.key] = l:job
     en
@@ -82,11 +73,11 @@ endf
 "
 " Actions
 "
-func! indexer#{s:name}#_(cxt)
-    call indexer#{s:name}#_status(a:cxt)
+func! indexer#{s:name}#_(req) dict
+    call indexer#execute(call('indexer#request', [s:name, 'status']), self)
 endf
 
-func! indexer#{s:name}#_status(cxt)
+func! indexer#{s:name}#_status(req) dict
     echon "\n"
     for [l:key, l:job] in items(s:jobs)
         echon {l:key: job_status(l:job)} "\n"

@@ -10,7 +10,7 @@
 if exists("g:plugin_indexer") | fini | el | let g:plugin_indexer = "0.7.9" | en
 
 func! s:Indexer(...)
-    call indexer#process(call('indexer#context', a:000))
+    call indexer#process(call('indexer#request', a:000))
 endf
 
 " Use :Indexer to call functions manually.

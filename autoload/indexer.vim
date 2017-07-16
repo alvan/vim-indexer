@@ -15,22 +15,13 @@ func! indexer#initial()
 endf
 
 func! indexer#startup()
-    for l:mod in g:indexer_user_modules
+    for l:mod in indexer#modules()
         call indexer#{l:mod}#startup()
     endfor
 endf
 
-func! indexer#context(...)
-    let l:cxt = {}
-    let l:cxt.mod = get(a:000, 0, '')
-    let l:cxt.act = get(a:000, 1, '')
-    let l:cxt.etc = {'args': a:000}
-
-    return l:cxt
-endf
-
-func! indexer#default(cxt)
-    echon "Indexer modules: " g:indexer_user_modules "\n"
+func! indexer#default()
+    echon "Indexer modules: " indexer#modules() "\n"
 
     let l:prj = indexer#project(expand('%:p'))
     if !empty(l:prj)
@@ -52,47 +43,91 @@ func! indexer#express(...)
 
     let l:res = []
 
-    for l:mod in g:indexer_user_modules
+    for l:mod in indexer#modules()
         if strpart(l:mod, 0, l:len) == l:pre
-            call extend(l:res, [l:mod])
+            call add(l:res, l:mod)
         en
     endfor
 
-    for l:mod in g:indexer_user_modules
-        if exists('*indexer#' . l:mod . '#actions')
-            for l:act in indexer#{l:mod}#actions()
-                if l:act != ''
-                    let l:key = l:mod . ' ' . l:act
-                    if strpart(l:key, 0, l:len) == l:pre
-                        call extend(l:res, [stridx(strpart(l:key, l:len), ' ') < 0 ? l:act : l:key])
-                    en
+    for l:mod in indexer#modules()
+        for l:act in indexer#actions(l:mod)
+            if l:act != ''
+                let l:key = l:mod . ' ' . l:act
+                if strpart(l:key, 0, l:len) == l:pre
+                    call add(l:res, stridx(strpart(l:key, l:len), ' ') < 0 ? l:act : l:key)
                 en
-            endfor
-        en
+            en
+        endfor
     endfor
 
     return join(l:res, "\n")
 endf
 
-func! indexer#process(cxt)
-    if a:cxt.mod == ''
-        call indexer#default(a:cxt)
+func! indexer#request(...)
+    let l:req = {}
+    let l:req.etc = {'args': a:000}
+    let l:req.mod = get(a:000, 0, '')
+    let l:req.act = get(a:000, 1, '')
+
+    return l:req
+endf
+
+func! indexer#process(req)
+    if a:req.mod == ''
+        call indexer#default()
         return
     en
 
-    if indexer#has_mod(a:cxt.mod)
-        let l:cxt = indexer#{a:cxt.mod}#context(a:cxt)
-        if !empty(l:cxt)
-            call indexer#execute(l:cxt)
-            return
+    if !indexer#has_mod(a:req.mod)
+        call indexer#add_log('Miss module: ' . a:req.mod)
+        return
+    en
+
+    call indexer#execute(a:req, indexer#{a:req.mod}#prepare(a:req))
+endf
+
+func! indexer#execute(req, cxt)
+    if empty(a:req)
+        call indexer#add_log('None request.')
+        return
+    en
+
+    if type(a:cxt) != v:t_dict
+        call indexer#add_log('None context.')
+        return
+    en
+
+    if index(indexer#actions(a:req.mod), a:req.act) < 0
+        call indexer#add_log(printf('Miss action "%s" in module "%s"', a:req.act, a:req.mod))
+    el
+        call call('indexer#' . a:req.mod . '#_' . a:req.act, [a:req], a:cxt)
+    en
+endf
+
+func! indexer#modules()
+    return g:indexer_user_modules
+endf
+
+func! indexer#actions(mod)
+    let l:lst = []
+    let l:pre = 'indexer#' . a:mod . '#_'
+
+    redi => l:ret
+    sil! exec 'fu /^' . l:pre
+    redi END
+
+    if l:ret != ''
+        let l:res = split(l:ret, "\n")
+        if !empty(l:res)
+            for l:def in l:res
+                let l:fun = strpart(l:def, stridx(l:def, l:pre) + strlen(l:pre))
+                let l:fun = strpart(l:fun, 0, stridx(l:fun, '('))
+                call add(l:lst, l:fun)
+            endfor
         en
     en
 
-    call indexer#add_log('Miss module: ' . a:cxt.mod)
-endf
-
-func! indexer#execute(cxt)
-    call indexer#{a:cxt.mod}#_{a:cxt.act}(a:cxt)
+    return l:lst
 endf
 
 func! indexer#project(pth)
@@ -141,7 +176,7 @@ func! indexer#project(pth)
 endf
 
 func! indexer#has_mod(mod)
-    return index(g:indexer_user_modules, a:mod) >= 0
+    return index(indexer#modules(), a:mod) >= 0
 endf
 
 func! indexer#add_log(...)
