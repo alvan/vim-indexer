@@ -130,49 +130,62 @@ func! indexer#actions(mod)
     return l:lst
 endf
 
-func! indexer#project(pth)
-    if empty(g:indexer_root_markers)
-        return
-    en
+func! indexer#parents(pth, ...)
+    let l:lst = []
+    let l:max = get(a:000, 0, 0)
 
-    let l:dir = isdirectory(a:pth) ? a:pth : fnamemodify(a:pth, ':p:h')
-    let l:num = len(split(l:dir, '[\\\\/]'))
-    while l:num > 0 && strlen(l:dir) > 1 && isdirectory(l:dir)
-        let l:num -= 1
+    if !empty(g:indexer_root_markers)
+        let l:dir = fnamemodify(isdirectory(a:pth) ? a:pth : fnamemodify(a:pth, ':p:h'), ':p')
+        let l:num = len(split(l:dir, '[\\\\/]'))
+        while l:num > 0 && strlen(l:dir) > 1 && isdirectory(l:dir)
+            let l:num -= 1
 
-        for l:fnm in g:indexer_root_markers
-            let l:fil = l:dir . '/' . l:fnm
-            if getftype(l:fil) != ''
-                let l:dir = l:dir . '/'
-
-                let l:prj = get(s:prjs, l:dir)
-                if empty(l:prj)
-                    let l:prj = {'dir': l:dir}
-
-                    " Load project setting file
-                    let l:prj.etc = {}
-                    let l:cfg = l:dir . g:indexer_root_setting
-                    if filereadable(l:cfg)
-                        let l:etc = json_decode(join(readfile(l:cfg), "\n"))
-                        if !empty(l:etc)
-                            call extend(l:prj.etc, l:etc)
-                        en
+            for l:fnm in g:indexer_root_markers
+                let l:fil = l:dir . l:fnm
+                if getftype(l:fil) != ''
+                    call add(l:lst, l:dir)
+                    if l:max > 0 && len(l:lst) >= l:max
+                        return l:lst
                     en
 
-                    let s:prjs[l:dir] = l:prj
+                    break
                 en
+            endfor
 
-                return l:prj
+            let l:nxt = fnamemodify(fnamemodify(l:dir, ':h:h'), ':p')
+            if l:dir == l:nxt
+                break
             en
-        endfor
 
-        let l:nxt = fnamemodify(l:dir, ':h')
-        if l:dir == l:nxt
-            break
+            let l:dir = l:nxt
+        endwhile
+    en
+
+    return l:lst
+endf
+
+func! indexer#project(pth)
+    let l:dir = get(indexer#parents(a:pth, 1), 0, '')
+    if l:dir != ''
+        let l:prj = get(s:prjs, l:dir)
+        if empty(l:prj)
+            let l:prj = {'dir': l:dir}
+
+            " Load project setting file
+            let l:prj.etc = {}
+            let l:cfg = l:dir . g:indexer_root_setting
+            if filereadable(l:cfg)
+                let l:etc = json_decode(join(readfile(l:cfg), "\n"))
+                if !empty(l:etc)
+                    call extend(l:prj.etc, l:etc)
+                en
+            en
+
+            let s:prjs[l:dir] = l:prj
         en
 
-        let l:dir = l:nxt
-    endwhile
+        return l:prj
+    en
 endf
 
 func! indexer#has_mod(mod)
