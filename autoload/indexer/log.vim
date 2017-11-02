@@ -13,10 +13,10 @@ let s:logs = []
 
 func! indexer#{s:name}#initial()
     call indexer#declare('g:indexer_logs_maxsize', 100)
-    call indexer#add_log('Init module: ' . s:name)
 endf
 
 func! indexer#{s:name}#startup()
+    call indexer#add_log('Load module: ' . s:name)
 endf
 
 func! indexer#{s:name}#prepare(req)

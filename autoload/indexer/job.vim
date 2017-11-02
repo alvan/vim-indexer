@@ -12,10 +12,10 @@ let s:name = 'job'
 let s:jobs = {}
 
 func! indexer#{s:name}#initial()
-    call indexer#add_log('Init module: ' . s:name)
 endf
 
 func! indexer#{s:name}#startup()
+    call indexer#add_log('Load module: ' . s:name)
 endf
 
 func! indexer#{s:name}#prepare(req)

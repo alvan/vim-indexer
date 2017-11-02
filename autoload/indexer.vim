@@ -16,11 +16,7 @@ endf
 
 func! indexer#startup()
     for l:mod in indexer#modules()
-        try
-            call indexer#{l:mod}#startup()
-        cat /^Vim\%((\a\+)\)\=:E117/	" E117, function does not exist
-            call indexer#add_log('Skip module: "' . l:mod . '" not found!')
-        endtry
+        call indexer#{l:mod}#startup()
     endfor
 endf
 

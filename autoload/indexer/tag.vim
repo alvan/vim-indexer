@@ -11,8 +11,6 @@ if exists('s:name') | fini | en
 let s:name = 'tag'
 
 func! indexer#{s:name}#initial()
-    call indexer#add_log('Init module: ' . s:name)
-
     call indexer#declare('g:indexer_tags_watches', ['*.c', '*.h', '*.c++', '*.php', '*.py'])
     call indexer#declare('g:indexer_tags_command', indexer#{s:name}#command())
     call indexer#declare('g:indexer_tags_options', '-R --sort=yes --c++-kinds=+p+l --fields=+iaS --extra=+q --languages=vim,c,c++,php,python')
@@ -20,6 +18,8 @@ func! indexer#{s:name}#initial()
 endf
 
 func! indexer#{s:name}#startup()
+    call indexer#add_log('Load module: ' . s:name)
+
     exec 'au BufEnter * call indexer#' . s:name . '#trigger(["attach"], expand("<afile>:p"))'
     if has('job')
         exec 'au BufReadPost * call indexer#' . s:name . '#trigger(["update", "-1"], expand("<afile>:p"))'
