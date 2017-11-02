@@ -1,6 +1,6 @@
 # Indexer
 
-A Indexer plugin that provides painless transparent tags generation with project management.
+Vim Indexer plugin that provides async tags generation with project management.
 
 Usage: `:Indexer [module] [action] [params ...]`
 
