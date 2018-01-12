@@ -65,7 +65,8 @@ endf
 
 func! indexer#request(...)
     let l:req = {}
-    let l:req.etc = {'args': a:000}
+    let l:req.etc = {}
+    let l:req.lst = a:000
     let l:req.mod = get(a:000, 0, '')
     let l:req.act = get(a:000, 1, '')
 

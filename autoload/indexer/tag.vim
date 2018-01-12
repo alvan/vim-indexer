@@ -107,7 +107,7 @@ func! indexer#{s:name}#_(req) dict
 endf
 
 func! indexer#{s:name}#_attach(req) dict
-    let l:out = self.etc.tags_savedir . indexer#{s:name}#uniform(self.prj.dir)
+    let l:out = get(a:req.lst, 2, self.etc.tags_savedir . indexer#{s:name}#uniform(self.prj.dir))
     if index(tagfiles(), l:out) < 0
         call indexer#add_log('Link tags: ' . l:out)
         exec "setl tags+=" . substitute(l:out, ' ', '\\\\\\ ', 'g')
@@ -135,7 +135,7 @@ func! indexer#{s:name}#_update(req) dict
     let l:job.cmd = self.cmd
     let l:job.key = indexer#{s:name}#job_key(a:req.act, self.out)
     let l:job.ecb = 'indexer#' . s:name . '#did_tag'
-    let l:job.sta = str2nr(get(a:req.etc.args, 2, '0'))
+    let l:job.sta = str2nr(get(a:req.lst, 2, '0'))
 
     call indexer#add_log('Make tags: ' . self.out)
     if has('job') && indexer#has_mod('job')

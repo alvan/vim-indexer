@@ -7,7 +7,7 @@
 " -- }}}
 
 " Exit if already loaded
-if exists("g:plugin_indexer") | fini | el | let g:plugin_indexer = "0.7.9" | en
+if exists("g:plugin_indexer") | fini | el | let g:plugin_indexer = "0.8.1" | en
 
 func! s:Indexer(...)
     call indexer#process(call('indexer#request', a:000))
