@@ -65,7 +65,6 @@ endf
 
 func! indexer#request(...)
     let l:req = {}
-    let l:req.etc = {}
     let l:req.lst = a:000
     let l:req.mod = get(a:000, 0, '')
     let l:req.act = get(a:000, 1, '')
@@ -100,9 +99,10 @@ func! indexer#execute(req, cxt)
 
     if index(indexer#actions(a:req.mod), a:req.act) < 0
         call indexer#add_log(printf('Miss action "%s" in module "%s"', a:req.act, a:req.mod))
-    el
-        call call('indexer#' . a:req.mod . '#_' . a:req.act, [a:req], a:cxt)
+        return
     en
+
+    call call('indexer#' . a:req.mod . '#_' . a:req.act, [a:req], a:cxt)
 endf
 
 func! indexer#modules()
