@@ -84,7 +84,7 @@ func! indexer#{s:name}#command()
 endf
 
 func! indexer#{s:name}#uniform(pth)
-    return substitute(a:pth, '[^a-zA-Z0-9_]', '_', 'g')
+    return substitute(a:pth, '[^a-zA-Z0-9_]', '_', 'g') . (has('cryptv') ? '$' . strpart(sha256(a:pth), 0, 7) : '')
 endf
 
 func! indexer#{s:name}#job_key(act, key)
