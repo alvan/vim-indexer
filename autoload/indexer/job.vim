@@ -6,9 +6,8 @@
 "   Description:  module that provides starting and stopping jobs.
 "
 " -- }}}
-if exists('s:name') | fini | en
+if exists('s:name') | fini | el | let s:name = 'job' | en
 
-let s:name = 'job'
 let s:jobs = {}
 
 func! indexer#{s:name}#initial()
@@ -18,7 +17,7 @@ func! indexer#{s:name}#startup()
     call indexer#add_log('Load module: ' . s:name)
 endf
 
-func! indexer#{s:name}#prepare(req)
+func! indexer#{s:name}#resolve(req)
     return {}
 endf
 

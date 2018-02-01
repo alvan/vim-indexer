@@ -6,9 +6,8 @@
 "   Description:  module that provides logging.
 "
 " -- }}}
-if exists('s:name') | fini | en
+if exists('s:name') | fini | el | let s:name = 'log' | en
 
-let s:name = 'log'
 let s:logs = []
 
 func! indexer#{s:name}#initial()
@@ -19,7 +18,7 @@ func! indexer#{s:name}#startup()
     call indexer#add_log('Load module: ' . s:name)
 endf
 
-func! indexer#{s:name}#prepare(req)
+func! indexer#{s:name}#resolve(req)
     return {}
 endf
 

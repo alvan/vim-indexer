@@ -1,29 +1,29 @@
-if exists("g:autoload_indexer") | fini | el | let g:autoload_indexer = 1 | en
+if exists('s:name') | fini | el | let s:name = 'indexer' | en
 
 let s:prjs = {}
 
-func! indexer#declare(var, def)
+func! {s:name}#declare(var, def)
     if !exists(a:var)
         let {a:var} = a:def
     en
 endf
 
-func! indexer#initial()
-    call indexer#declare('g:indexer_root_setting', 'indexer.json')
-    call indexer#declare('g:indexer_root_markers', ['.git'])
-    call indexer#declare('g:indexer_user_modules', ['log', 'job', 'tag'])
+func! {s:name}#initial()
+    call {s:name}#declare('g:indexer_root_setting', 'indexer.json')
+    call {s:name}#declare('g:indexer_root_markers', ['.git'])
+    call {s:name}#declare('g:indexer_user_modules', ['log', 'job', 'tag'])
 endf
 
-func! indexer#startup()
-    for l:mod in indexer#modules()
-        call indexer#{l:mod}#startup()
+func! {s:name}#startup()
+    for l:mod in {s:name}#modules()
+        call {s:name}#{l:mod}#startup()
     endfor
 endf
 
-func! indexer#default()
-    echon "Indexer modules: " indexer#modules() "\n"
+func! {s:name}#default()
+    echon "Indexer modules: " {s:name}#modules() "\n"
 
-    let l:prj = indexer#project(expand('%:p'))
+    let l:prj = {s:name}#project(expand('%:p'))
     if !empty(l:prj)
         echon "\n"
         echon "Current project: " l:prj.dir "\n"
@@ -33,7 +33,7 @@ func! indexer#default()
     en
 endf
 
-func! indexer#express(...)
+func! {s:name}#express(...)
     let l:cmd = get(a:000, 1, '')
     let l:pos = get(a:000, 2)
     let l:pre = substitute(
@@ -43,14 +43,14 @@ func! indexer#express(...)
 
     let l:res = []
 
-    for l:mod in indexer#modules()
+    for l:mod in {s:name}#modules()
         if strpart(l:mod, 0, l:len) == l:pre
             call add(l:res, l:mod)
         en
     endfor
 
-    for l:mod in indexer#modules()
-        for l:act in indexer#actions(l:mod)
+    for l:mod in {s:name}#modules()
+        for l:act in {s:name}#actions(l:mod)
             if l:act != ''
                 let l:key = l:mod . ' ' . l:act
                 if strpart(l:key, 0, l:len) == l:pre
@@ -63,7 +63,7 @@ func! indexer#express(...)
     return join(l:res, "\n")
 endf
 
-func! indexer#request(...)
+func! {s:name}#request(...)
     let l:req = {}
     let l:req.lst = a:000
     let l:req.mod = get(a:000, 0, '')
@@ -72,46 +72,46 @@ func! indexer#request(...)
     return l:req
 endf
 
-func! indexer#process(req)
+func! {s:name}#process(req)
     if a:req.mod == ''
-        call indexer#default()
+        call {s:name}#default()
         return
     en
 
-    if !indexer#has_mod(a:req.mod)
-        call indexer#add_log('Miss module: ' . a:req.mod)
+    if !{s:name}#has_mod(a:req.mod)
+        call {s:name}#add_log('Miss module: ' . a:req.mod)
         return
     en
 
-    call indexer#execute(a:req, indexer#{a:req.mod}#prepare(a:req))
+    call {s:name}#execute(a:req, {s:name}#{a:req.mod}#resolve(a:req))
 endf
 
-func! indexer#execute(req, cxt)
+func! {s:name}#execute(req, cxt)
     if empty(a:req)
-        call indexer#add_log('None request.')
+        call {s:name}#add_log('None request.')
         return
     en
 
     if type(a:cxt) != v:t_dict
-        call indexer#add_log('None context.')
+        call {s:name}#add_log('None context.')
         return
     en
 
-    if index(indexer#actions(a:req.mod), a:req.act) < 0
-        call indexer#add_log(printf('Miss action "%s" in module "%s"', a:req.act, a:req.mod))
+    if index({s:name}#actions(a:req.mod), a:req.act) < 0
+        call {s:name}#add_log(printf('Miss action "%s" in module "%s"', a:req.act, a:req.mod))
         return
     en
 
-    call call('indexer#' . a:req.mod . '#_' . a:req.act, [a:req], a:cxt)
+    call call(s:name . '#' . a:req.mod . '#_' . a:req.act, [a:req], a:cxt)
 endf
 
-func! indexer#modules()
+func! {s:name}#modules()
     return g:indexer_user_modules
 endf
 
-func! indexer#actions(mod)
+func! {s:name}#actions(mod)
     let l:lst = []
-    let l:pre = 'indexer#' . a:mod . '#_'
+    let l:pre = s:name . '#' . a:mod . '#_'
 
     redi => l:ret
     sil! exec 'fu /^' . l:pre
@@ -131,11 +131,11 @@ func! indexer#actions(mod)
     return l:lst
 endf
 
-func! indexer#parents(pth, ...)
+func! {s:name}#parents(pth, ...)
     let l:lst = []
     let l:max = get(a:000, 0, 0)
 
-    if !empty(g:indexer_root_markers)
+    if !empty(a:pth) && !empty(g:indexer_root_markers)
         let l:dir = fnamemodify(isdirectory(a:pth) ? a:pth : fnamemodify(a:pth, ':p:h'), ':p')
         let l:num = len(split(l:dir, '[\\\\/]'))
         while l:num > 0 && strlen(l:dir) > 1 && isdirectory(l:dir)
@@ -165,8 +165,8 @@ func! indexer#parents(pth, ...)
     return l:lst
 endf
 
-func! indexer#project(pth)
-    let l:dir = get(indexer#parents(a:pth, 1), 0, '')
+func! {s:name}#project(pth)
+    let l:dir = get({s:name}#parents(a:pth, 1), 0, '')
     if l:dir != ''
         let l:prj = get(s:prjs, l:dir)
         if empty(l:prj)
@@ -189,17 +189,17 @@ func! indexer#project(pth)
     en
 endf
 
-func! indexer#has_mod(mod)
-    return index(indexer#modules(), a:mod) >= 0
+func! {s:name}#has_mod(mod)
+    return index({s:name}#modules(), a:mod) >= 0
 endf
 
-func! indexer#add_log(...)
-    if indexer#has_mod('log')
-        call call('indexer#log#add_log', a:000)
+func! {s:name}#add_log(...)
+    if {s:name}#has_mod('log')
+        call call(s:name . '#log#add_log', a:000)
     en
 endf
 
 "
 " Initial
 "
-call indexer#initial()
+call {s:name}#initial()

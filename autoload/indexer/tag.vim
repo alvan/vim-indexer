@@ -6,9 +6,7 @@
 "   Description:  module that provides painless transparent tags generation.
 "
 " -- }}}
-if exists('s:name') | fini | en
-
-let s:name = 'tag'
+if exists('s:name') | fini | el | let s:name = 'tag' | en
 
 func! indexer#{s:name}#initial()
     call indexer#declare('g:indexer_tags_watches', ['*.c', '*.h', '*.c++', '*.php', '*.py'])
@@ -26,34 +24,25 @@ func! indexer#{s:name}#startup()
     en
 endf
 
-func! indexer#{s:name}#context(cxt)
-    if !has_key(a:cxt, 'fil')
-        let a:cxt.fil = expand('%:p')
-    en
-
-    let a:cxt.prj = indexer#project(a:cxt.fil)
-    if empty(a:cxt.prj)
+func! indexer#{s:name}#resolve(req)
+    let l:cxt = {}
+    let l:cxt.fil = has_key(a:req, 'fil') ? a:req.fil : expand('%:p')
+    let l:cxt.prj = indexer#project(l:cxt.fil)
+    if empty(l:cxt.prj)
         return
     en
 
-    if !has_key(a:cxt, 'etc')
-        let a:cxt.etc = {}
-    en
+    let l:cxt.etc = {}
+    let l:cxt.etc.tags_watches = get(l:cxt.prj.etc, 'tags_watches', g:indexer_tags_watches)
+    let l:cxt.etc.tags_command = get(l:cxt.prj.etc, 'tags_command', g:indexer_tags_command)
+    let l:cxt.etc.tags_options = get(l:cxt.prj.etc, 'tags_options', g:indexer_tags_options)
+    let l:cxt.etc.tags_savedir = fnamemodify(get(l:cxt.prj.etc, 'tags_savedir', g:indexer_tags_savedir), ':p')
 
-    let a:cxt.etc.tags_watches = get(a:cxt.prj.etc, 'tags_watches', g:indexer_tags_watches)
-    let a:cxt.etc.tags_command = get(a:cxt.prj.etc, 'tags_command', g:indexer_tags_command)
-    let a:cxt.etc.tags_options = get(a:cxt.prj.etc, 'tags_options', g:indexer_tags_options)
-    let a:cxt.etc.tags_savedir = fnamemodify(get(a:cxt.prj.etc, 'tags_savedir', g:indexer_tags_savedir), ':p')
-
-    return a:cxt
-endf
-
-func! indexer#{s:name}#prepare(req)
-    return indexer#{s:name}#context({})
+    return l:cxt
 endf
 
 func! indexer#{s:name}#trigger(fun, fil)
-    let l:cxt = indexer#{s:name}#context({'fil': a:fil})
+    let l:cxt = indexer#{s:name}#resolve({'fil': a:fil})
     if !empty(l:cxt) && !empty(l:cxt.etc.tags_watches) && !empty(a:fun)
         for l:pat in l:cxt.etc.tags_watches
             if a:fil =~ glob2regpat(l:pat)
@@ -84,7 +73,7 @@ func! indexer#{s:name}#command()
 endf
 
 func! indexer#{s:name}#uniform(pth)
-    return substitute(a:pth, '[^a-zA-Z0-9_]', '_', 'g') . (has('cryptv') ? '$' . strpart(sha256(a:pth), 0, 7) : '')
+    return substitute(a:pth, '[^a-zA-Z0-9_]', '_', 'g') . (has('cryptv') ? '#' . strpart(sha256(a:pth), 0, 7) : '')
 endf
 
 func! indexer#{s:name}#job_key(act, key)
