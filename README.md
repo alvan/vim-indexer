@@ -23,12 +23,15 @@ Usage: `:Indexer tag [attach|update]`
 
 ## Options
 
-    " JSON formatted configuration file which located in the project directory,
-    " makes you could specify different options for each project.
-    let g:indexer_root_setting = 'indexer.json'
+    " Project root sources, used to identify ancestor path of project root directory.
+    let g:indexer_root_sources = [$HOME]
 
     " Project root markers, used to identify project root directory.
     let g:indexer_root_markers = ['.git']
+
+    " JSON formatted configuration file which located in the project root directory,
+    " makes you could specify different options for each project.
+    let g:indexer_root_setting = 'indexer.json'
 
     " Enabled user modules.
     let g:indexer_user_modules = ['log', 'job', 'tag']
