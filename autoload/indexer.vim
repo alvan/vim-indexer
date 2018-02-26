@@ -66,9 +66,9 @@ endf
 
 func! {s:name}#request(...)
     let l:req = {}
-    let l:req.lst = a:000
     let l:req.mod = get(a:000, 0, '')
     let l:req.act = get(a:000, 1, '')
+    let l:req.lst = a:000
 
     return l:req
 endf

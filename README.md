@@ -19,7 +19,7 @@ Usage: `:Indexer job [status]`
 ### tag
 Module that provides painless transparent tags generation (job module required).
 
-Usage: `:Indexer tag [attach|update]`
+Usage: `:Indexer tag [locate|append|update|reload]`
 
 ## Options
 
@@ -55,14 +55,14 @@ Usage: `:Indexer tag [attach|update]`
     "    "tags_watches": ["*.php"],
     "    "tags_command": "ctags",
     "    "tags_options": "-R --sort=yes --languages=php"
-    "    "tags_savedir": "~/.vim_indexer_tags/",
+    "    "tags_savedir": "~/.vim_indexer_tags/"
     " }
     "
     " And/Or settings in global:
     "
-    let g:indexer_tags_watches = ['*.c', '*.h', '*.c++', '*.php', '*.py']
+    let g:indexer_tags_watches = ['*.c', '*.h', '*.c++', '*.cpp', '*.php', '*.py']
     let g:indexer_tags_command = 'ctags'
-    let g:indexer_tags_options = '-R --sort=yes --c++-kinds=+p+l --fields=+iaS --extra=+q --languages=vim,c,c++,php,python'
-    let g:indexer_tags_savedir = fnamemodify('~/.vim_indexer_tags/', ':p')
+    let g:indexer_tags_options = '-R --sort=yes --c++-kinds=+p+l --fields=+iaS --extra=+q --languages=c,c++,php,python'
+    let g:indexer_tags_savedir = '~/.vim_indexer_tags/'
 
 

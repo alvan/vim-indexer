@@ -62,7 +62,7 @@ func! indexer#{s:name}#end_job(job, err) dict
     if !a:err
         call indexer#add_log('Done job: ' . self.key, [a:job, a:err])
         if has_key(self, 'ecb')
-            call {self.ecb}(self.cxt)
+            call {self.ecb}(self)
         en
     el
         call indexer#add_log('Exit job: ' . self.key, [a:job, a:err])
