@@ -8,6 +8,8 @@
 " -- }}}
 if exists('s:name') | fini | el | let s:name = 'tag' | en
 
+let s:tags = {}
+
 func! indexer#{s:name}#initial()
     call indexer#declare('g:indexer_tags_watches', ['*.c', '*.h', '*.c++', '*.php', '*.py'])
     call indexer#declare('g:indexer_tags_command', indexer#{s:name}#command())
@@ -96,11 +98,26 @@ func! indexer#{s:name}#_(req) dict
 endf
 
 func! indexer#{s:name}#_attach(req) dict
-    let l:out = get(a:req.lst, 2, self.etc.tags_savedir . indexer#{s:name}#uniform(self.prj.dir))
-    if index(tagfiles(), l:out) < 0
-        call indexer#add_log('Link tags: ' . l:out)
-        exec "setl tags+=" . substitute(l:out, ' ', '\\\\\\ ', 'g')
+    if !has_key(s:tags, self.prj.dir)
+        let s:tags[self.prj.dir] = []
     en
+
+    let l:def = self.etc.tags_savedir . indexer#{s:name}#uniform(self.prj.dir)
+    if index(s:tags[self.prj.dir], l:def) < 0
+        call add(s:tags[self.prj.dir], l:def)
+    en
+
+    let l:fil = get(a:req.lst, 2, '')
+    if !empty(l:fil)
+        call add(s:tags[self.prj.dir], l:fil)
+    en
+
+    for l:out in s:tags[self.prj.dir]
+        if index(tagfiles(), l:out) < 0
+            call indexer#add_log('Link tags: ' . l:out)
+            exec "setl tags+=" . substitute(l:out, ' ', '\\\\\\ ', 'g')
+        en
+    endfor
 endf
 
 func! indexer#{s:name}#_update(req) dict
