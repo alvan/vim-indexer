@@ -21,9 +21,12 @@ endf
 func! indexer#{s:name}#startup()
     call indexer#add_log('Load module: ' . s:name)
 
-    exec 'au BufEnter * call indexer#' . s:name . '#trigger(["locate"], expand("<afile>:p"))'
-    if has('job')
-        exec 'au BufReadPost * call indexer#' . s:name . '#trigger(["onload", "-1"], expand("<afile>:p"))'
+    let l:lst = join(g:indexer_tags_watches, ',')
+    if !empty(l:lst)
+        exec 'au BufEnter ' . l:lst . ' call indexer#' . s:name . '#trigger(["locate"], expand("<afile>:p"))'
+        if has('job')
+            exec 'au BufReadPost ' . l:lst . ' call indexer#' . s:name . '#trigger(["onload", "-1"], expand("<afile>:p"))'
+        en
     en
 endf
 
