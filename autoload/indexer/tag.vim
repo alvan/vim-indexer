@@ -2,7 +2,7 @@
 "
 "          File:  tag.vim
 "        Author:  Alvan
-"         Usage:  Indexer tag [locate|append|update|reload]
+"         Usage:  Indexer tag [locate|onload|reload|update]
 "   Description:  module that provides painless transparent tags generation.
 "
 " -- }}}
@@ -23,8 +23,8 @@ func! indexer#{s:name}#startup()
 
     exec 'au BufEnter * call indexer#' . s:name . '#trigger(["locate"], expand("<afile>:p"))'
     if has('job')
-        exec 'au BufReadPost * call indexer#' . s:name . '#trigger(["update", "-1"], expand("<afile>:p"))'
-        exec 'au BufWritePost * call indexer#' . s:name . '#trigger(["append", "0"], expand("<afile>:p"))'
+        exec 'au BufReadPost * call indexer#' . s:name . '#trigger(["onload", "-1"], expand("<afile>:p"))'
+        exec 'au BufWritePost * call indexer#' . s:name . '#trigger(["update", "0"], expand("<afile>:p"))'
     en
 endf
 
@@ -142,7 +142,7 @@ func! indexer#{s:name}#_locate(req) dict
     call indexer#{s:name}#include(self, '')
 endf
 
-func! indexer#{s:name}#_append(req) dict
+func! indexer#{s:name}#_update(req) dict
     let l:src = self.fil
 
     if !has_key(s:tmps[self.prj.dir], l:src)
@@ -158,7 +158,7 @@ func! indexer#{s:name}#_append(req) dict
     en
 endf
 
-func! indexer#{s:name}#_update(req) dict
+func! indexer#{s:name}#_onload(req) dict
     let l:src = self.prj.dir
 
     if !isdirectory(self.etc.tags_savedir)
@@ -190,7 +190,7 @@ func! indexer#{s:name}#_reload(req) dict
         let s:tmps[self.prj.dir] = {}
     en
 
-    call call('indexer#' . s:name . '#_update', [a:req], self)
+    call call('indexer#' . s:name . '#_onload', [a:req], self)
 endf
 
 "
