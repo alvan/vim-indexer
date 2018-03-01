@@ -24,6 +24,7 @@ func! indexer#{s:name}#startup()
     exec 'au BufEnter * call indexer#' . s:name . '#trigger(["locate"], expand("<afile>:p"))'
     if has('job')
         exec 'au BufReadPost * call indexer#' . s:name . '#trigger(["update", "-1"], expand("<afile>:p"))'
+        exec 'au BufWritePost * call indexer#' . s:name . '#trigger(["append", "0"], expand("<afile>:p"))'
     en
 endf
 
@@ -99,15 +100,16 @@ func! indexer#{s:name}#did_tag(job)
 endf
 
 func! indexer#{s:name}#include(cxt, out)
-    if !empty(a:out) && index(s:tags[a:cxt.prj.dir], a:out) < 0
-        call add(s:tags[a:cxt.prj.dir], a:out)
+    if !empty(a:out)
+        call filter(s:tags[a:cxt.prj.dir], 'v:val != a:out')
+        call insert(s:tags[a:cxt.prj.dir], a:out)
     en
 
     for l:fil in s:tags[a:cxt.prj.dir]
-        if index(tagfiles(), l:fil) < 0
-            call indexer#add_log('Link tags: ' . l:fil)
-            exec "setl tags+=" . substitute(l:fil, ' ', '\\\\\\ ', 'g')
-        en
+        exec "setl tags-=" . substitute(l:fil, ' ', '\\\\\\ ', 'g')
+    endfor
+    for l:fil in s:tags[a:cxt.prj.dir]
+        exec "setl tags+=" . substitute(l:fil, ' ', '\\\\\\ ', 'g')
     endfor
 endf
 
@@ -125,10 +127,7 @@ func! indexer#{s:name}#produce(cxt, src, out, key, sta)
     let l:job.sta = a:sta
 
     if has('job') && indexer#has_mod('job')
-        call function('indexer#job#run_job', l:job)()
-    el
-        call system(l:job.cmd)
-        call {l:job.ecb}(l:job)
+        return function('indexer#job#run_job', l:job)()
     en
 endf
 
@@ -140,7 +139,7 @@ func! indexer#{s:name}#_(req) dict
 endf
 
 func! indexer#{s:name}#_locate(req) dict
-    call indexer#{s:name}#include(self, self.etc.tags_savedir . indexer#{s:name}#uniform(self.prj.dir))
+    call indexer#{s:name}#include(self, '')
 endf
 
 func! indexer#{s:name}#_append(req) dict
@@ -153,9 +152,10 @@ func! indexer#{s:name}#_append(req) dict
     let l:out = s:tmps[self.prj.dir][l:src]
 
     call indexer#add_log('Make tags: ' . l:out)
-    call indexer#{s:name}#produce(self, l:src, l:out,
-                \ indexer#{s:name}#job_key(a:req.act, l:out), str2nr(get(a:req.lst, 2, '0')))
-    call indexer#{s:name}#include(self, l:out)
+    if !empty(indexer#{s:name}#produce(self, l:src, l:out,
+                \ indexer#{s:name}#job_key(a:req.act, l:out), str2nr(get(a:req.lst, 2, '0'))))
+        call indexer#{s:name}#include(self, l:out)
+    en
 endf
 
 func! indexer#{s:name}#_update(req) dict
@@ -170,9 +170,10 @@ func! indexer#{s:name}#_update(req) dict
     let l:out = self.etc.tags_savedir . indexer#{s:name}#uniform(l:src)
 
     call indexer#add_log('Make tags: ' . l:out)
-    call indexer#{s:name}#produce(self, l:src, l:out,
-                \ indexer#{s:name}#job_key(a:req.act, l:out), str2nr(get(a:req.lst, 2, '0')))
-    call indexer#{s:name}#include(self, l:out)
+    if !empty(indexer#{s:name}#produce(self, l:src, l:out,
+                \ indexer#{s:name}#job_key(a:req.act, l:out), str2nr(get(a:req.lst, 2, '0'))))
+        call indexer#{s:name}#include(self, l:out)
+    en
 endf
 
 func! indexer#{s:name}#_reload(req) dict

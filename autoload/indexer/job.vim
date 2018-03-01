@@ -56,6 +56,8 @@ func! indexer#{s:name}#run_job() dict
     if self.key != ''
         let s:jobs[self.key] = l:job
     en
+
+    return l:job
 endf
 
 func! indexer#{s:name}#end_job(job, err) dict
