@@ -26,6 +26,7 @@ func! indexer#{s:name}#startup()
         exec 'au BufEnter ' . l:lst . ' call indexer#' . s:name . '#trigger(["locate"], expand("<afile>:p"))'
         if has('job')
             exec 'au BufReadPost ' . l:lst . ' call indexer#' . s:name . '#trigger(["onload", "-1"], expand("<afile>:p"))'
+            exec 'au BufWritePost ' . l:lst . ' call indexer#' . s:name . '#trigger(["update", "0"], expand("<afile>:p"))'
         en
     en
 endf
