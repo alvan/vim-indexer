@@ -19,7 +19,7 @@ Usage: `:Indexer job [status]`
 ### tag
 Module that provides painless transparent tags generation (job module required).
 
-Usage: `:Indexer tag [locate|onload|reload|update]`
+Usage: `:Indexer tag [locate|reload|update]`
 
 ## Options
 

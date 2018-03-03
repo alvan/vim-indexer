@@ -2,7 +2,7 @@
 "
 "          File:  tag.vim
 "        Author:  Alvan
-"         Usage:  Indexer tag [locate|onload|reload|update]
+"         Usage:  Indexer tag [locate|reload|update]
 "   Description:  module that provides painless transparent tags generation.
 "
 " -- }}}
@@ -25,7 +25,7 @@ func! indexer#{s:name}#startup()
     if !empty(l:lst)
         exec 'au BufEnter ' . l:lst . ' call indexer#' . s:name . '#trigger(["locate"], expand("<afile>:p"))'
         if has('job')
-            exec 'au BufReadPost ' . l:lst . ' call indexer#' . s:name . '#trigger(["onload", "-1"], expand("<afile>:p"))'
+            exec 'au BufReadPost ' . l:lst . ' call indexer#' . s:name . '#trigger(["reload", "-1"], expand("<afile>:p"))'
             exec 'au BufWritePost ' . l:lst . ' call indexer#' . s:name . '#trigger(["update", "0"], expand("<afile>:p"))'
         en
     en
@@ -161,39 +161,33 @@ func! indexer#{s:name}#_update(req) dict
     en
 endf
 
-func! indexer#{s:name}#_onload(req) dict
+func! indexer#{s:name}#_reload(req) dict
     let l:src = self.prj.dir
-
+    let l:out = self.etc.tags_savedir . indexer#{s:name}#uniform(l:src)
     if !isdirectory(self.etc.tags_savedir)
         if exists("*mkdir")
             call mkdir(self.etc.tags_savedir, 'p')
         en
     en
 
-    let l:out = self.etc.tags_savedir . indexer#{s:name}#uniform(l:src)
-
     call indexer#add_log('Make tags: ' . l:out)
     if !empty(indexer#{s:name}#produce(self, l:src, l:out,
                 \ indexer#{s:name}#job_key(a:req.act, l:out), str2nr(get(a:req.lst, 2, '0'))))
+        if !empty(s:tmps[self.prj.dir])
+            let l:buf = bufnr('%')
+            for l:tmp in values(s:tmps[self.prj.dir])
+                call indexer#add_log('Dele tags: ' . l:tmp)
+
+                call delete(l:tmp)
+                call filter(s:tags[self.prj.dir], 'v:val != l:tmp')
+                exec "bufdo setl tags-=" . substitute(l:tmp, ' ', '\\\\\\ ', 'g')
+            endfor
+            exec 'buffer ' . l:buf
+            let s:tmps[self.prj.dir] = {}
+        en
+
         call indexer#{s:name}#include(self, l:out)
     en
-endf
-
-func! indexer#{s:name}#_reload(req) dict
-    if !empty(s:tmps[self.prj.dir])
-        let l:buf = bufnr('%')
-        for l:tmp in values(s:tmps[self.prj.dir])
-            call indexer#add_log('Dele tags: ' . l:tmp)
-
-            call delete(l:tmp)
-            call filter(s:tags[self.prj.dir], 'v:val != l:tmp')
-            exec "bufdo setl tags-=" . substitute(l:tmp, ' ', '\\\\\\ ', 'g')
-        endfor
-        exec 'buffer ' . l:buf
-        let s:tmps[self.prj.dir] = {}
-    en
-
-    call call('indexer#' . s:name . '#_onload', [a:req], self)
 endf
 
 "
