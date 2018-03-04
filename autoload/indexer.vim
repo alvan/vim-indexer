@@ -19,6 +19,14 @@ func! {s:name}#startup()
     for l:mod in {s:name}#modules()
         call {s:name}#{l:mod}#startup()
     endfor
+
+    if exists('#User#IndexerStarted')
+        if v:version > 703 || v:version == 703 && has('patch442')
+            doautocmd <nomodeline> User IndexerStarted
+        el
+            doautocmd User IndexerStarted
+        en
+    endif
 endf
 
 func! {s:name}#default()
