@@ -26,7 +26,7 @@ func! {s:name}#startup()
         el
             doautocmd User IndexerStarted
         en
-    endif
+    en
 endf
 
 func! {s:name}#default()
@@ -167,7 +167,7 @@ func! {s:name}#parents(pth, ...)
         while l:num > 0 && strlen(l:dir) > 1 && isdirectory(l:dir)
             let l:num -= 1
 
-            if empty({s:name}#sources(l:dir))
+            if empty({s:name}#sources(l:dir, 1))
                 break
             en
 
@@ -197,7 +197,7 @@ endf
 
 func! {s:name}#project(pth)
     let l:dir = get({s:name}#parents(a:pth, 1), 0, '')
-    if l:dir != '' && !empty({s:name}#sources(l:dir))
+    if l:dir != '' && !empty({s:name}#sources(l:dir, 1))
         let l:prj = get(s:prjs, l:dir)
         if empty(l:prj)
             let l:prj = {'dir': l:dir}
