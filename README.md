@@ -23,8 +23,8 @@ Usage: `:Indexer tag [locate|reload|update]`
 
 ## Options
 
-    " Project root sources, used to identify ancestor path of project root directory.
-    let g:indexer_root_sources = [$HOME]
+    " Project root folders, used to identify ancestor path of project root directory.
+    let g:indexer_root_folders = [$HOME]
 
     " Project root markers, used to identify project root directory.
     let g:indexer_root_markers = ['.git']

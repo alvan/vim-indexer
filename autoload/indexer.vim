@@ -9,7 +9,7 @@ func! {s:name}#declare(var, def)
 endf
 
 func! {s:name}#initial()
-    call {s:name}#declare('g:indexer_root_sources', [$HOME])
+    call {s:name}#declare('g:indexer_root_folders', [$HOME])
     call {s:name}#declare('g:indexer_root_markers', ['.git'])
     call {s:name}#declare('g:indexer_root_setting', 'indexer.json')
     call {s:name}#declare('g:indexer_user_modules', ['log', 'job', 'tag'])
@@ -140,13 +140,16 @@ func! {s:name}#actions(mod)
     return l:lst
 endf
 
-func! {s:name}#sources(pth, ...)
+func! {s:name}#folders(pth, ...)
     let l:lst = []
-    let l:max = get(a:000, 0, 0)
-    if !empty(g:indexer_root_sources)
-        for l:src in g:indexer_root_sources
-            if strpart(a:pth, 0, strlen(l:src)) == l:src
-                call add(l:lst, l:src)
+    if !empty(g:indexer_root_folders)
+        let l:max = get(a:000, 0, 0)
+        let l:pth = fnamemodify(a:pth, ':p')
+        for l:dir in g:indexer_root_folders
+            let l:dir = fnamemodify(l:dir, ':p')
+
+            if strpart(l:pth, 0, strlen(l:dir)) == l:dir
+                call add(l:lst, l:dir)
                 if l:max > 0 && len(l:lst) >= l:max
                     return l:lst
                 en
@@ -167,7 +170,7 @@ func! {s:name}#parents(pth, ...)
         while l:num > 0 && strlen(l:dir) > 1 && isdirectory(l:dir)
             let l:num -= 1
 
-            if empty({s:name}#sources(l:dir, 1))
+            if empty({s:name}#folders(l:dir, 1))
                 break
             en
 
@@ -197,7 +200,7 @@ endf
 
 func! {s:name}#project(pth)
     let l:dir = get({s:name}#parents(a:pth, 1), 0, '')
-    if l:dir != '' && !empty({s:name}#sources(l:dir, 1))
+    if l:dir != '' && !empty({s:name}#folders(l:dir, 1))
         let l:prj = get(s:prjs, l:dir)
         if empty(l:prj)
             let l:prj = {'dir': l:dir}
