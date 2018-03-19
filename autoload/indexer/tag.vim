@@ -23,11 +23,11 @@ func! indexer#{s:name}#startup()
 
     let l:lst = join(g:indexer_tags_watches, ',')
     if !empty(l:lst)
-        exec 'au BufEnter ' . l:lst . ' call indexer#' . s:name . '#trigger(["locate"], expand("<afile>:p"))'
         if has('job')
             exec 'au BufReadPost ' . l:lst . ' call indexer#' . s:name . '#trigger(["reload", "-1"], expand("<afile>:p"))'
             exec 'au BufWritePost ' . l:lst . ' call indexer#' . s:name . '#trigger(["update", "0"], expand("<afile>:p"))'
         en
+        exec 'au BufEnter ' . l:lst . ' call indexer#' . s:name . '#trigger(["locate"], expand("<afile>:p"))'
     en
 endf
 
@@ -46,7 +46,7 @@ func! indexer#{s:name}#resolve(req)
     let l:cxt.etc.tags_savedir = fnamemodify(get(l:cxt.prj.etc, 'tags_savedir', g:indexer_tags_savedir), ':p')
 
     if !has_key(s:tags, l:cxt.prj.dir)
-        let s:tags[l:cxt.prj.dir] = []
+        let s:tags[l:cxt.prj.dir] = [l:cxt.etc.tags_savedir . indexer#{s:name}#uniform(l:cxt.prj.dir)]
     en
     if !has_key(s:tmps, l:cxt.prj.dir)
         let s:tmps[l:cxt.prj.dir] = {}
