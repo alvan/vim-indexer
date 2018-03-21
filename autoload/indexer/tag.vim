@@ -136,7 +136,7 @@ func! indexer#{s:name}#produce(cxt, src, out, key, sta)
     let l:job.key = a:key
     let l:job.sta = a:sta
 
-    if has('job') && indexer#has_mod('job')
+    if indexer#has_mod('job')
         return function('indexer#job#run_job', l:job)()
     en
 endf
