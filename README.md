@@ -54,15 +54,21 @@ Usage: `:Indexer tag [locate|reload|update]`
     " {
     "    "tags_watches": ["*.php"],
     "    "tags_command": "ctags",
-    "    "tags_options": "-R --sort=yes --languages=php"
-    "    "tags_savedir": "~/.vim_indexer_tags/"
+    "    "tags_options": "-R --sort=yes --languages=php",
+    "    "tags_savedir": "~/.vim_indexer_tags/",
+    "    "tags_handler_locate": ["locate"],
+    "    "tags_handler_reload": ["reload", "-1"],
+    "    "tags_handler_update": ["update"],
     " }
     "
     " And/Or settings in global:
     "
-    let g:indexer_tags_watches = ['*.c', '*.h', '*.c++', '*.cpp', '*.php', '*.py']
-    let g:indexer_tags_command = 'ctags'
-    let g:indexer_tags_options = '-R --sort=yes --c++-kinds=+p+l --fields=+iaS --extra=+q --languages=c,c++,php,python'
-    let g:indexer_tags_savedir = '~/.vim_indexer_tags/'
+    let g:indexer_tags_watches = ["*.c", "*.h", "*.c++", "*.cpp", "*.php", "*.py"]
+    let g:indexer_tags_command = "ctags"
+    let g:indexer_tags_options = "-R --sort=yes --c++-kinds=+p+l --fields=+iaS --extra=+q --languages=c,c++,php,python"
+    let g:indexer_tags_savedir = "~/.vim_indexer_tags/"
+    let g:indexer_tags_handler_locate = ["locate"]
+    let g:indexer_tags_handler_reload = ["reload", "-1"]
+    let g:indexer_tags_handler_update = ["update"]
 
 

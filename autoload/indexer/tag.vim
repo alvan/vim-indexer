@@ -16,6 +16,10 @@ func! indexer#{s:name}#initial()
     call indexer#declare('g:indexer_tags_command', indexer#{s:name}#command())
     call indexer#declare('g:indexer_tags_options', '-R --sort=yes --c++-kinds=+p+l --fields=+iaS --extra=+q --languages=c,c++,php,python')
     call indexer#declare('g:indexer_tags_savedir', '~/.vim_indexer_tags/')
+
+    call indexer#declare('g:indexer_tags_handler_locate', ['locate'])
+    call indexer#declare('g:indexer_tags_handler_reload', ['reload', '-1'])
+    call indexer#declare('g:indexer_tags_handler_update', ['update'])
 endf
 
 func! indexer#{s:name}#startup()
@@ -23,11 +27,9 @@ func! indexer#{s:name}#startup()
 
     let l:lst = join(g:indexer_tags_watches, ',')
     if !empty(l:lst)
-        if has('job')
-            exec 'au BufReadPost ' . l:lst . ' call indexer#' . s:name . '#trigger(["reload", "-1"], expand("<afile>:p"))'
-            exec 'au BufWritePost ' . l:lst . ' call indexer#' . s:name . '#trigger(["update", "0"], expand("<afile>:p"))'
-        en
-        exec 'au BufEnter ' . l:lst . ' call indexer#' . s:name . '#trigger(["locate"], expand("<afile>:p"))'
+        exec 'au BufReadPost ' . l:lst . ' call indexer#' . s:name . '#trigger("reload", expand("<afile>:p"))'
+        exec 'au BufWritePost ' . l:lst . ' call indexer#' . s:name . '#trigger("update", expand("<afile>:p"))'
+        exec 'au BufEnter ' . l:lst . ' call indexer#' . s:name . '#trigger("locate", expand("<afile>:p"))'
     en
 endf
 
@@ -45,6 +47,10 @@ func! indexer#{s:name}#resolve(req)
     let l:cxt.etc.tags_options = get(l:cxt.prj.etc, 'tags_options', g:indexer_tags_options)
     let l:cxt.etc.tags_savedir = fnamemodify(get(l:cxt.prj.etc, 'tags_savedir', g:indexer_tags_savedir), ':p')
 
+    let l:cxt.etc.tags_handler_locate = get(l:cxt.prj.etc, 'tags_handler_locate', g:indexer_tags_handler_locate)
+    let l:cxt.etc.tags_handler_reload = get(l:cxt.prj.etc, 'tags_handler_reload', g:indexer_tags_handler_reload)
+    let l:cxt.etc.tags_handler_update = get(l:cxt.prj.etc, 'tags_handler_update', g:indexer_tags_handler_update)
+
     if !has_key(s:tags, l:cxt.prj.dir)
         let s:tags[l:cxt.prj.dir] = [l:cxt.etc.tags_savedir . indexer#{s:name}#uniform(l:cxt.prj.dir)]
     en
@@ -56,11 +62,12 @@ func! indexer#{s:name}#resolve(req)
 endf
 
 func! indexer#{s:name}#trigger(fun, fil)
+    let l:key = 'tags_handler_' . a:fun
     let l:cxt = indexer#{s:name}#resolve({'fil': a:fil})
-    if !empty(l:cxt) && !empty(l:cxt.etc.tags_watches)
+    if !empty(l:cxt) && !empty(l:cxt.etc.tags_watches) && has_key(l:cxt.etc, l:key) && !empty(l:cxt.etc[l:key])
         for l:pat in l:cxt.etc.tags_watches
             if a:fil =~ glob2regpat(l:pat)
-                call indexer#execute(call('indexer#request', [s:name] + a:fun), l:cxt)
+                call indexer#execute(call('indexer#request', [s:name] + l:cxt.etc[l:key]), l:cxt)
                 return
             en
         endfor
