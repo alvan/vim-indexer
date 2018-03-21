@@ -129,14 +129,14 @@ func! indexer#{s:name}#produce(cxt, src, out, key, sta)
         return
     en
 
-    let l:job = {}
-    let l:job.dat = {'cxt': a:cxt, 'src': a:src, 'out': a:out, 'tmp': tempname()}
-    let l:job.ecb = 'indexer#' . s:name . '#did_tag'
-    let l:job.cmd = printf('%s %s -f %s %s', a:cxt.etc.tags_command, a:cxt.etc.tags_options, l:job.dat.tmp, l:job.dat.src)
-    let l:job.key = a:key
-    let l:job.sta = a:sta
-
     if indexer#has_mod('job')
+        let l:job = {}
+        let l:job.dat = {'cxt': a:cxt, 'src': a:src, 'out': a:out, 'tmp': tempname()}
+        let l:job.ecb = 'indexer#' . s:name . '#did_tag'
+        let l:job.cmd = printf('%s %s -f %s %s', a:cxt.etc.tags_command, a:cxt.etc.tags_options, l:job.dat.tmp, l:job.dat.src)
+        let l:job.key = a:key
+        let l:job.sta = a:sta
+
         return function('indexer#job#run_job', l:job)()
     en
 endf
