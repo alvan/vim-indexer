@@ -115,6 +115,10 @@ func! indexer#{s:name}#include(cxt, out)
         call insert(s:tags[a:cxt.prj.dir], a:out)
     en
 
+    for l:tmp in values(s:tmps[a:cxt.prj.dir])
+        exec "setl tags-=" . substitute(l:tmp, ' ', '\\\\\\ ', 'g')
+    endfor
+
     for l:fil in s:tags[a:cxt.prj.dir]
         exec "setl tags-=" . substitute(l:fil, ' ', '\\\\\\ ', 'g')
     endfor
@@ -181,16 +185,9 @@ func! indexer#{s:name}#_reload(req) dict
     if !empty(indexer#{s:name}#produce(self, l:src, l:out,
                 \ indexer#{s:name}#job_key(a:req.act, l:out), str2nr(get(a:req.lst, 2, '0'))))
         if !empty(s:tmps[self.prj.dir])
-            let l:buf = bufnr('%')
             for l:tmp in values(s:tmps[self.prj.dir])
-                call indexer#add_log('Dele tags: ' . l:tmp)
-
-                call delete(l:tmp)
                 call filter(s:tags[self.prj.dir], 'v:val != l:tmp')
-                exec "bufdo setl tags-=" . substitute(l:tmp, ' ', '\\\\\\ ', 'g')
             endfor
-            exec 'buffer ' . l:buf
-            let s:tmps[self.prj.dir] = {}
         en
 
         call indexer#{s:name}#include(self, l:out)
