@@ -51,6 +51,7 @@ func! indexer#{s:name}#run_job() dict
     en
 
     call indexer#add_log('Save job: ' . self.key)
+    call indexer#add_log('Exec cmd: ' . self.cmd)
 
     let l:job = job_start(self.cmd, {"exit_cb": function('indexer#' . s:name . '#end_job', self)})
     if self.key != ''
