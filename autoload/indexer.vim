@@ -76,7 +76,7 @@ func! {s:name}#request(...)
     let l:req = {}
     let l:req.mod = get(a:000, 0, '')
     let l:req.act = get(a:000, 1, '')
-    let l:req.lst = a:000
+    let l:req.opt = a:000[2:]
 
     return l:req
 endf

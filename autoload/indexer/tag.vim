@@ -167,7 +167,7 @@ func! indexer#{s:name}#_update(req) dict
 
     call indexer#add_log('Make tags: ' . l:out)
     if !empty(indexer#{s:name}#produce(self, l:src, l:out,
-                \ indexer#{s:name}#job_key(a:req.act, l:out), str2nr(get(a:req.lst, 2, '0'))))
+                \ indexer#{s:name}#job_key(a:req.act, l:out), str2nr(get(a:req.opt, 0, '0'))))
         call indexer#{s:name}#include(self, l:out)
     en
 endf
@@ -183,7 +183,7 @@ func! indexer#{s:name}#_reload(req) dict
 
     call indexer#add_log('Make tags: ' . l:out)
     if !empty(indexer#{s:name}#produce(self, l:src, l:out,
-                \ indexer#{s:name}#job_key(a:req.act, l:out), str2nr(get(a:req.lst, 2, '0'))))
+                \ indexer#{s:name}#job_key(a:req.act, l:out), str2nr(get(a:req.opt, 0, '0'))))
         if !empty(s:tmps[self.prj.dir])
             for l:tmp in values(s:tmps[self.prj.dir])
                 call filter(s:tags[self.prj.dir], 'v:val != l:tmp')
