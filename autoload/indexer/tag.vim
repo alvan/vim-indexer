@@ -23,7 +23,7 @@ func! indexer#{s:name}#initial()
 endf
 
 func! indexer#{s:name}#startup()
-    call indexer#add_log('Load module: ' . s:name)
+    call indexer#logging().log('Load module: ' . s:name)
 
     let l:lst = join(g:indexer_tags_watches, ',')
     if !empty(l:lst)
@@ -129,20 +129,23 @@ endf
 
 func! indexer#{s:name}#produce(cxt, src, out, key, sta)
     if a:cxt.etc.tags_command == ''
-        call indexer#add_log('Tags command not found!')
+        call indexer#logging().log('Tags command not found!')
         return
     en
 
-    if indexer#has_mod('job')
-        let l:job = {}
-        let l:job.dat = {'cxt': a:cxt, 'src': a:src, 'out': a:out, 'tmp': tempname()}
-        let l:job.ecb = 'indexer#' . s:name . '#did_tag'
-        let l:job.cmd = printf('%s %s -f "%s" "%s"', a:cxt.etc.tags_command, a:cxt.etc.tags_options, l:job.dat.tmp, l:job.dat.src)
-        let l:job.key = a:key
-        let l:job.sta = a:sta
-
-        return function('indexer#job#run_job', l:job)()
+    if index(indexer#modules(), 'job') < 0
+        call indexer#logging().log('Miss module: job')
+        return
     en
+
+    let l:job = {}
+    let l:job.dat = {'cxt': a:cxt, 'src': a:src, 'out': a:out, 'tmp': tempname()}
+    let l:job.ecb = 'indexer#' . s:name . '#did_tag'
+    let l:job.cmd = printf('%s %s -f "%s" "%s"', a:cxt.etc.tags_command, a:cxt.etc.tags_options, l:job.dat.tmp, l:job.dat.src)
+    let l:job.key = a:key
+    let l:job.sta = a:sta
+
+    return function('indexer#job#run_job', l:job)()
 endf
 
 "
@@ -165,7 +168,7 @@ func! indexer#{s:name}#_update(req) dict
 
     let l:out = s:tmps[self.prj.dir][l:src]
 
-    call indexer#add_log('Make tags: ' . l:out)
+    call indexer#logging().log('Make tags: ' . l:out)
     if !empty(indexer#{s:name}#produce(self, l:src, l:out,
                 \ indexer#{s:name}#job_key(a:req.act, l:out), str2nr(get(a:req.opt, 0, '0'))))
         call indexer#{s:name}#include(self, l:out)
@@ -181,7 +184,7 @@ func! indexer#{s:name}#_reload(req) dict
         en
     en
 
-    call indexer#add_log('Make tags: ' . l:out)
+    call indexer#logging().log('Make tags: ' . l:out)
     if !empty(indexer#{s:name}#produce(self, l:src, l:out,
                 \ indexer#{s:name}#job_key(a:req.act, l:out), str2nr(get(a:req.opt, 0, '0'))))
         if !empty(s:tmps[self.prj.dir])

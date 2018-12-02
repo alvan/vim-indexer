@@ -14,7 +14,7 @@ func! indexer#{s:name}#initial()
 endf
 
 func! indexer#{s:name}#startup()
-    call indexer#add_log('Load module: ' . s:name)
+    call indexer#logging().log('Load module: ' . s:name)
 endf
 
 func! indexer#{s:name}#resolve(req)
@@ -23,7 +23,7 @@ endf
 
 func! indexer#{s:name}#run_job() dict
     if !has('job')
-        call indexer#add_log('Miss +job feature')
+        call indexer#logging().log('Miss +job feature')
         return
     en
 
@@ -34,24 +34,24 @@ func! indexer#{s:name}#run_job() dict
     "
     if self.key != '' && has_key(s:jobs, self.key)
         if self.sta < 0
-            call indexer#add_log('Skip job: ' . self.key)
+            call indexer#logging().log('Skip job: ' . self.key)
             return
         en
 
         let l:job = get(s:jobs, self.key)
         if job_status(l:job) == 'run'
             if self.sta > 0
-                call indexer#add_log('Stop job: ' . self.key)
+                call indexer#logging().log('Stop job: ' . self.key)
                 call job_stop(l:job)
             el
-                call indexer#add_log('Skip job: ' . self.key)
+                call indexer#logging().log('Skip job: ' . self.key)
                 return
             en
         en
     en
 
-    call indexer#add_log('Save job: ' . self.key)
-    call indexer#add_log('Exec cmd: ' . self.cmd)
+    call indexer#logging().log('Save job: ' . self.key)
+    call indexer#logging().log('Exec cmd: ' . self.cmd)
 
     let l:job = job_start(self.cmd, {"exit_cb": function('indexer#' . s:name . '#end_job', self)})
     if self.key != ''
@@ -63,12 +63,12 @@ endf
 
 func! indexer#{s:name}#end_job(job, err) dict
     if !a:err
-        call indexer#add_log('Done job: ' . self.key, [a:job, a:err])
+        call indexer#logging().log('Done job: ' . self.key, [a:job, a:err])
         if has_key(self, 'ecb')
             call {self.ecb}(self)
         en
     el
-        call indexer#add_log('Exit job: ' . self.key, [a:job, a:err])
+        call indexer#logging().log('Exit job: ' . self.key, [a:job, a:err])
     en
 endf
 

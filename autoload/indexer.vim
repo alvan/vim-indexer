@@ -2,6 +2,18 @@ if exists('s:name') | fini | el | let s:name = 'indexer' | en
 
 let s:prjs = {}
 
+let s:logs = {'logs': []}
+func! s:logs.log(...)
+    call add(self.logs, [localtime(), a:000])
+    if len(self.logs) > 20
+        call remove(self.logs, 0)
+    en
+endf
+
+func! {s:name}#logging()
+    return s:logs
+endf
+
 func! {s:name}#declare(var, def)
     if !exists(a:var)
         let {a:var} = a:def
@@ -58,7 +70,7 @@ func! {s:name}#express(...)
         en
     endfor
 
-    for l:mod in {s:name}#modules()
+    for l:mod in l:res
         for l:act in {s:name}#actions(l:mod)
             if l:act != ''
                 let l:key = l:mod . ' ' . l:act
@@ -87,27 +99,22 @@ func! {s:name}#process(req)
         return
     en
 
-    if !{s:name}#has_mod(a:req.mod)
-        call {s:name}#add_log('Miss module: ' . a:req.mod)
-        return
-    en
-
     call {s:name}#execute(a:req, {s:name}#{a:req.mod}#resolve(a:req))
 endf
 
 func! {s:name}#execute(req, cxt)
     if empty(a:req)
-        call {s:name}#add_log('None request.')
+        call {s:name}#logging().log('None request.')
         return
     en
 
     if type(a:cxt) != v:t_dict
-        call {s:name}#add_log('None context.')
+        call {s:name}#logging().log('None context.')
         return
     en
 
     if index({s:name}#actions(a:req.mod), a:req.act) < 0
-        call {s:name}#add_log(printf('Miss action "%s" in module "%s"', a:req.act, a:req.mod))
+        call {s:name}#logging().log(printf('Miss action "%s" in module "%s"', a:req.act, a:req.mod))
         return
     en
 
@@ -219,16 +226,6 @@ func! {s:name}#project(pth)
         en
 
         return l:prj
-    en
-endf
-
-func! {s:name}#has_mod(mod)
-    return index({s:name}#modules(), a:mod) >= 0
-endf
-
-func! {s:name}#add_log(...)
-    if {s:name}#has_mod('log')
-        call call(s:name . '#log#add_log', a:000)
     en
 endf
 
