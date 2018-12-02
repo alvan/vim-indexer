@@ -15,4 +15,3 @@ endf
 
 " Use :Indexer to call functions manually.
 com! -nargs=* -complete=custom,indexer#express Indexer call s:Indexer(<f-args>)
-call indexer#startup()

@@ -1,5 +1,7 @@
 if exists('s:name') | fini | el | let s:name = 'indexer' | en
 
+let s:stat = 0
+
 let s:prjs = {}
 
 let s:logs = {'logs': []}
@@ -28,6 +30,11 @@ func! {s:name}#initial()
 endf
 
 func! {s:name}#startup()
+    if s:stat
+        return
+    en
+    let s:stat += 1
+
     for l:mod in {s:name}#modules()
         call {s:name}#{l:mod}#startup()
     endfor
