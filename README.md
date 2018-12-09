@@ -4,6 +4,10 @@ Vim Indexer plugin that provides async tags generation with project management.
 
 Usage: `:Indexer [module] [action] [params ...]`
 
+Install this plugin and everything will be DONE!
+
+Use <kbd>CTRL-]</kbd> to jump anywhere.
+
 ## Modules
 
 ### log
