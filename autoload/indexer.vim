@@ -77,7 +77,7 @@ func! {s:name}#express(...)
         en
     endfor
 
-    for l:mod in l:res
+    for l:mod in {s:name}#modules()
         for l:act in {s:name}#actions(l:mod)
             if l:act != ''
                 let l:key = l:mod . ' ' . l:act
