@@ -8,18 +8,6 @@ Install this plugin and everything will be DONE!
 
 Use <kbd>CTRL-]</kbd> to jump anywhere.
 
-## Modules
-
-### log
-Module that provides logging, usually used for debugging modules themselves.
-
-Usage: `:Indexer log`
-
-### tag
-Module that provides painless transparent tags generation (Vim8 with +job feature required).
-
-Usage: `:Indexer tag [locate|reload|status|update]`
-
 ## Options
 
     " Project root folders, used to identify ancestor path of project root directory.
@@ -34,6 +22,18 @@ Usage: `:Indexer tag [locate|reload|status|update]`
 
     " Enabled user modules.
     let g:indexer_user_modules = ['log', 'tag']
+
+## Modules
+
+### log
+Module that provides logging, usually used for debugging modules themselves.
+
+Usage: `:Indexer log`
+
+### tag
+Module that provides painless transparent tags generation (Vim8 with +job feature required).
+
+Usage: `:Indexer tag [locate|reload|status|update]`
 
 ## Options (module)
 
