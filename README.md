@@ -15,15 +15,10 @@ Module that provides logging, usually used for debugging modules themselves.
 
 Usage: `:Indexer log`
 
-### job
-Module that provides starting and stopping jobs (Vim8 with +job feature required).
-
-Usage: `:Indexer job [status]`
-
 ### tag
-Module that provides painless transparent tags generation (job module required).
+Module that provides painless transparent tags generation (Vim8 with +job feature required).
 
-Usage: `:Indexer tag [locate|reload|update]`
+Usage: `:Indexer tag [locate|reload|status|update]`
 
 ## Options
 
@@ -38,16 +33,13 @@ Usage: `:Indexer tag [locate|reload|update]`
     let g:indexer_root_setting = 'indexer.json'
 
     " Enabled user modules.
-    let g:indexer_user_modules = ['log', 'job', 'tag']
+    let g:indexer_user_modules = ['log', 'tag']
 
 ## Options (module)
 
     " Module: log
     "
     let g:indexer_logs_maxsize = 100
-
-    " Module: job
-    "
 
     " Module: tag
     "

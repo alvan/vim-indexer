@@ -1,8 +1,7 @@
 if exists('s:name') | fini | el | let s:name = 'indexer' | en
 
-let s:stat = 0
-
 let s:prjs = {}
+let s:mods = {}
 
 let s:logs = {'logs': []}
 func! s:logs.log(...)
@@ -11,57 +10,56 @@ func! s:logs.log(...)
         call remove(self.logs, 0)
     en
 endf
-
-func! {s:name}#logging()
+func! indexer#logging()
     return s:logs
 endf
 
-func! {s:name}#declare(var, def)
+func! indexer#declare(var, def)
     if !exists(a:var)
         let {a:var} = a:def
     en
 endf
 
-func! {s:name}#initial()
-    call {s:name}#declare('g:indexer_root_folders', [$HOME])
-    call {s:name}#declare('g:indexer_root_markers', ['.git'])
-    call {s:name}#declare('g:indexer_root_setting', 'indexer.json')
-    call {s:name}#declare('g:indexer_user_modules', ['log', 'job', 'tag'])
+func! indexer#require(mod)
+    if !has_key(s:mods, a:mod)
+        let s:mods[a:mod] = indexer#{a:mod}#profile()
+        if !s:mods[a:mod]
+            let s:mods[a:mod] = {'name': a:mod, 'deps': []}
+        en
+
+        for l:dep in s:mods[a:mod].deps
+            call indexer#require(l:dep)
+        endfor
+        call add(filter(indexer#modules(), 'v:val != a:mod'), a:mod)
+    en
 endf
 
-func! {s:name}#startup()
-    if s:stat
-        return
-    en
-    let s:stat += 1
+func! indexer#initial()
+    call indexer#declare('g:indexer_root_folders', [$HOME])
+    call indexer#declare('g:indexer_root_markers', ['.git'])
+    call indexer#declare('g:indexer_root_setting', 'indexer.json')
+    call indexer#declare('g:indexer_user_modules', ['log', 'tag'])
 
-    for l:mod in {s:name}#modules()
-        call {s:name}#{l:mod}#startup()
+    for l:mod in indexer#modules()
+        call indexer#require(l:mod)
+    endfor
+endf
+
+func! indexer#startup()
+    if exists('#User#IndexerStartup')
+        doautocmd <nomodeline> User IndexerStartup
+    en
+
+    for l:mod in indexer#modules()
+        call indexer#{l:mod}#startup()
     endfor
 
     if exists('#User#IndexerStarted')
-        if v:version > 703 || v:version == 703 && has('patch442')
-            doautocmd <nomodeline> User IndexerStarted
-        el
-            doautocmd User IndexerStarted
-        en
+        doautocmd <nomodeline> User IndexerStarted
     en
 endf
 
-func! {s:name}#default()
-    echon "Indexer modules: " {s:name}#modules() "\n"
-
-    let l:prj = {s:name}#project(expand('%:p'))
-    if !empty(l:prj)
-        echon "\n"
-        echon "Current project: " l:prj.dir "\n"
-        echon '> ' l:prj.dir g:indexer_root_setting "\n"
-        echon '  ' l:prj.etc "\n"
-        echon "\n"
-    en
-endf
-
-func! {s:name}#express(...)
+func! indexer#express(...)
     let l:cmd = get(a:000, 1, '')
     let l:pos = get(a:000, 2)
     let l:pre = substitute(
@@ -71,14 +69,14 @@ func! {s:name}#express(...)
 
     let l:res = []
 
-    for l:mod in {s:name}#modules()
+    for l:mod in indexer#modules()
         if strpart(l:mod, 0, l:len) == l:pre
             call add(l:res, l:mod)
         en
     endfor
 
-    for l:mod in {s:name}#modules()
-        for l:act in {s:name}#actions(l:mod)
+    for l:mod in indexer#modules()
+        for l:act in indexer#actions(l:mod)
             if l:act != ''
                 let l:key = l:mod . ' ' . l:act
                 if strpart(l:key, 0, l:len) == l:pre
@@ -91,7 +89,7 @@ func! {s:name}#express(...)
     return join(l:res, "\n")
 endf
 
-func! {s:name}#request(...)
+func! indexer#request(...)
     let l:req = {}
     let l:req.mod = get(a:000, 0, '')
     let l:req.act = get(a:000, 1, '')
@@ -100,40 +98,49 @@ func! {s:name}#request(...)
     return l:req
 endf
 
-func! {s:name}#process(req)
+func! indexer#process(req)
     if a:req.mod == ''
-        call {s:name}#default()
+        echon "Indexer modules: " indexer#modules() "\n"
+
+        let l:prj = indexer#project(expand('%:p'))
+        if !empty(l:prj)
+            echon "\n"
+            echon "Current project: " l:prj.dir "\n"
+            echon '> ' l:prj.dir g:indexer_root_setting "\n"
+            echon '  ' l:prj.etc "\n"
+            echon "\n"
+        en
         return
     en
 
-    call {s:name}#execute(a:req, {s:name}#{a:req.mod}#resolve(a:req))
+    call indexer#execute(a:req, indexer#{a:req.mod}#resolve(a:req))
 endf
 
-func! {s:name}#execute(req, cxt)
+func! indexer#execute(req, cxt)
     if empty(a:req)
-        call {s:name}#logging().log('None request.')
+        call indexer#logging().log('None request.')
         return
     en
 
     if type(a:cxt) != v:t_dict
-        call {s:name}#logging().log('None context.')
+        call indexer#logging().log('None context.')
         return
     en
 
-    if index({s:name}#actions(a:req.mod), a:req.act) < 0
-        call {s:name}#logging().log(printf('Miss action "%s" in module "%s"', a:req.act, a:req.mod))
+    if index(indexer#actions(a:req.mod), a:req.act) < 0
+        call indexer#logging().log(printf('Miss action "%s" in module "%s"', a:req.act, a:req.mod))
         return
     en
 
     call call(s:name . '#' . a:req.mod . '#_' . a:req.act, [a:req], a:cxt)
 endf
 
-func! {s:name}#modules()
+func! indexer#modules()
     return g:indexer_user_modules
 endf
 
-func! {s:name}#actions(mod)
-    let l:lst = []
+func! indexer#actions(mod)
+    let l:res = []
     let l:pre = s:name . '#' . a:mod . '#_'
 
     redi => l:ret
@@ -141,21 +148,18 @@ func! {s:name}#actions(mod)
     redi END
 
     if l:ret != ''
-        let l:res = split(l:ret, "\n")
-        if !empty(l:res)
-            for l:def in l:res
-                let l:fun = strpart(l:def, stridx(l:def, l:pre) + strlen(l:pre))
-                let l:fun = strpart(l:fun, 0, stridx(l:fun, '('))
-                call add(l:lst, l:fun)
-            endfor
-        en
+        for l:def in split(l:ret, "\n")
+            let l:fun = strpart(l:def, stridx(l:def, l:pre) + strlen(l:pre))
+            let l:fun = strpart(l:fun, 0, stridx(l:fun, '('))
+            call add(l:res, l:fun)
+        endfor
     en
 
-    return l:lst
+    return l:res
 endf
 
-func! {s:name}#folders(pth, ...)
-    let l:lst = []
+func! indexer#folders(pth, ...)
+    let l:res = []
     if !empty(g:indexer_root_folders)
         let l:max = get(a:000, 0, 0)
         let l:pth = fnamemodify(a:pth, ':p')
@@ -163,19 +167,19 @@ func! {s:name}#folders(pth, ...)
             let l:dir = fnamemodify(l:dir, ':p')
 
             if strpart(l:pth, 0, strlen(l:dir)) == l:dir
-                call add(l:lst, l:dir)
-                if l:max > 0 && len(l:lst) >= l:max
-                    return l:lst
+                call add(l:res, l:dir)
+                if l:max > 0 && len(l:res) >= l:max
+                    return l:res
                 en
             en
         endfor
     en
 
-    return l:lst
+    return l:res
 endf
 
-func! {s:name}#parents(pth, ...)
-    let l:lst = []
+func! indexer#parents(pth, ...)
+    let l:res = []
     let l:max = get(a:000, 0, 0)
 
     if !empty(a:pth) && !empty(g:indexer_root_markers)
@@ -184,16 +188,15 @@ func! {s:name}#parents(pth, ...)
         while l:num > 0 && strlen(l:dir) > 1 && isdirectory(l:dir)
             let l:num -= 1
 
-            if empty({s:name}#folders(l:dir, 1))
+            if empty(indexer#folders(l:dir, 1))
                 break
             en
 
             for l:fnm in g:indexer_root_markers
-                let l:fil = l:dir . l:fnm
-                if getftype(l:fil) != ''
-                    call add(l:lst, l:dir)
-                    if l:max > 0 && len(l:lst) >= l:max
-                        return l:lst
+                if getftype(l:dir . l:fnm) != ''
+                    call add(l:res, l:dir)
+                    if l:max > 0 && len(l:res) >= l:max
+                        return l:res
                     en
 
                     break
@@ -209,12 +212,12 @@ func! {s:name}#parents(pth, ...)
         endwhile
     en
 
-    return l:lst
+    return l:res
 endf
 
-func! {s:name}#project(pth)
-    let l:dir = get({s:name}#parents(a:pth, 1), 0, '')
-    if l:dir != '' && !empty({s:name}#folders(l:dir, 1))
+func! indexer#project(pth)
+    let l:dir = get(indexer#parents(a:pth, 1), 0, '')
+    if l:dir != '' && !empty(indexer#folders(l:dir, 1))
         let l:prj = get(s:prjs, l:dir)
         if empty(l:prj)
             let l:prj = {'dir': l:dir}
@@ -239,4 +242,4 @@ endf
 "
 " Initial
 "
-call {s:name}#initial()
+call indexer#initial()

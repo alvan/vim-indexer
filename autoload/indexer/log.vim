@@ -12,15 +12,18 @@ func! indexer#{s:name}#initial()
     call indexer#declare('g:indexer_logs_maxsize', 100)
 endf
 
+func! indexer#{s:name}#profile()
+endf
+
 func! indexer#{s:name}#startup()
-    let l:logs = indexer#logging()
-    func! l:logs.log(...) dict
+    let l:def = indexer#logging()
+    func! l:def.log(...) dict
         call add(self.logs, [localtime(), a:000])
         if exists('g:indexer_logs_maxsize') && len(self.logs) > g:indexer_logs_maxsize
             call remove(self.logs, 0)
         en
     endf
-    unl l:logs
+    unl l:def
 
     call indexer#logging().log('Load module: ' . s:name)
 endf
@@ -33,8 +36,8 @@ endf
 " Actions
 "
 func! indexer#{s:name}#_(req) dict
-    let l:lst = indexer#logging().logs
-    let l:len = len(l:lst)
+    let l:res = indexer#logging().logs
+    let l:len = len(l:res)
     if l:len > 0
         let l:ftm = exists("*strftime")
         let l:pad = strlen(string(l:len))
@@ -43,7 +46,7 @@ func! indexer#{s:name}#_(req) dict
             let l:num += 1
 
             let l:idx = l:len - l:num
-            let l:log = l:lst[l:idx]
+            let l:log = l:res[l:idx]
 
             echon "\n"
             echon printf('%0' . l:pad . 'd', l:idx + 1) '. '
