@@ -31,6 +31,8 @@ func! indexer#require(mod)
             call indexer#require(l:dep)
         endfor
         call add(filter(indexer#modules(), 'v:val != a:mod'), a:mod)
+
+        call indexer#{a:mod}#startup()
     en
 endf
 
@@ -39,10 +41,6 @@ func! indexer#initial()
     call indexer#declare('g:indexer_root_markers', ['.git'])
     call indexer#declare('g:indexer_root_setting', 'indexer.json')
     call indexer#declare('g:indexer_user_modules', ['log', 'tag'])
-
-    for l:mod in indexer#modules()
-        call indexer#require(l:mod)
-    endfor
 endf
 
 func! indexer#startup()
@@ -51,7 +49,7 @@ func! indexer#startup()
     en
 
     for l:mod in indexer#modules()
-        call indexer#{l:mod}#startup()
+        call indexer#require(l:mod)
     endfor
 
     if exists('#User#IndexerStarted')
