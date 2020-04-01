@@ -32,6 +32,7 @@ Usage: `:Indexer log`
 
 ### tag
 Module that provides painless transparent tags generation (Vim8 with +job feature required).
+When using the `ctags` command to generate tags, you need to ensure that the corresponding command line tools are installed on the system.
 
 Usage: `:Indexer tag [locate|reload|status|update]`
 
