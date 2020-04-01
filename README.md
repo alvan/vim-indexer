@@ -3,7 +3,6 @@
 Vim Indexer plugin that provides async tags generation with project management.
 
 Usage: `:Indexer [module] [action] [params ...]`
-Press <kbd>CTRL-]</kbd> to jump anywhere.
 
 ## Options
 
@@ -32,6 +31,7 @@ Module that provides painless transparent tags generation (Vim8 with +job featur
 When using the `ctags` command to generate tags, you need to ensure that the corresponding command line tools are installed on the system.
 
 Usage: `:Indexer tag [locate|reload|status|update]`
+Press <kbd>CTRL-]</kbd> to jump anywhere.
 
 ## Options (module)
 
