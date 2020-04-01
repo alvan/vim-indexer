@@ -26,6 +26,13 @@ Module that provides logging, usually used for debugging modules themselves.
 
 Usage: `:Indexer log`
 
+#### Options
+
+    " Module: log
+    "
+    let g:indexer_logs_maxsize = 100
+
+
 ### tag
 Module that provides painless transparent tags generation (Vim8 with +job feature required).
 
@@ -35,11 +42,7 @@ Usage: `:Indexer tag [locate|reload|status|update]`
 
 Press <kbd>CTRL-]</kbd> to jump anywhere.
 
-## Options (module)
-
-    " Module: log
-    "
-    let g:indexer_logs_maxsize = 100
+#### Options
 
     " Module: tag
     "
