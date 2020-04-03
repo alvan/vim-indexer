@@ -42,6 +42,9 @@ Usage: `:Indexer tag [locate|reload|status|update]`
 
 Press <kbd>CTRL-]</kbd> to jump anywhere.
 
+Notes: When opening a project for the first time, indexing can take a long time, depending on the size of the project.
+You can view the progress by using the command `:Indexer tag status`
+
 #### Options
 
     " Module: tag
