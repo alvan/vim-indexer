@@ -36,13 +36,13 @@ Usage: `:Indexer log`
 ### tag
 Module that provides painless transparent tags generation (Vim8 with +job feature required).
 
-When using the `ctags` command to generate tags, you need to ensure that the corresponding command line tools are installed on the system.
-
 Usage: `:Indexer tag [locate|reload|status|update]`
 
 Press <kbd>CTRL-]</kbd> to jump anywhere.
 
-Notes: When opening a project for the first time, indexing can take a long time, depending on the size of the project.
+Notes:
+* When using the `ctags` command to generate tags, you need to ensure that the corresponding command line tools are installed on the system.
+* When opening a project for the first time, indexing can take a long time, depending on the size of the project.
 You can view the progress by using the command `:Indexer tag status`
 
 #### Options
