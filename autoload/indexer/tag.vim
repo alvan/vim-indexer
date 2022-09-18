@@ -15,7 +15,7 @@ let s:tmps = {}
 func! indexer#{s:name}#initial()
     call indexer#declare('g:indexer_tags_watches', ['*.c', '*.h', '*.c++', '*.cpp', '*.php', '*.py'])
     call indexer#declare('g:indexer_tags_command', indexer#{s:name}#command())
-    call indexer#declare('g:indexer_tags_options', '-R --sort=yes --c++-kinds=+p+l --fields=+iaS --extra=+q --languages=c,c++,php,python')
+    call indexer#declare('g:indexer_tags_options', '-R --sort=yes --c++-kinds=+p+l --fields=+iaS --languages=c,c++,php,python')
     call indexer#declare('g:indexer_tags_savedir', '~/.vim_indexer_tags/')
 
     call indexer#declare('g:indexer_tags_handler_locate', ['locate'])
